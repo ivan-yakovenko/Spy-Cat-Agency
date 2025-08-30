@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: docker/dockerfiles/application.dockerfile
+    image: spycats/application:1.0.0
+    env_file:
+      - ../../.env.example
+    container_name: spycats-backend
+    ports:
+      - '8080:8080'
+    networks:
+      - spycats-net
+
+networks:
+  spycats-net:
+    external: true
