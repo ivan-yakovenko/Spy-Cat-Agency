@@ -1,0 +1,1024 @@
+{
+    "schemes": [
+        "http"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "API for managing spy cats and missions with targets.",
+        "title": "SpyCats Service API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api",
+    "paths": {
+        "/missions": {
+            "get": {
+                "description": "Retrieves a list of all missions with their spy cats and targets.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "missions"
+                ],
+                "summary": "Get all missions",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dtos.MissionAllResponseDto"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new mission with the provided data.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "missions"
+                ],
+                "summary": "Create a new mission",
+                "parameters": [
+                    {
+                        "description": "Mission creation data",
+                        "name": "mission",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.MissionCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.MissionSingleCreateResponseDto"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid mission data or targets number",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/missions/{missionId}": {
+            "get": {
+                "description": "Retrieves a mission by its Id, including its spy cat and targets.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "missions"
+                ],
+                "summary": "Get a single mission",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Mission Id (UUID)",
+                        "name": "missionId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.MissionSingleResponseDto"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid mission Id",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Mission not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes a mission by its Id. Fails if the mission is already assigned to a spy cat.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "missions"
+                ],
+                "summary": "Delete a mission",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Mission Id (UUID)",
+                        "name": "missionId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid mission Id",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Mission not found or already assigned",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Updates the completion state of a mission by its Id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "missions"
+                ],
+                "summary": "Update mission completion state",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Mission Id (UUID)",
+                        "name": "missionId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Completion state data",
+                        "name": "completionState",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.CompletionStateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.MissionSingleResponseDto"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid mission Id or completion state data",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Mission not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/missions/{missionId}/spycats": {
+            "post": {
+                "description": "Assigns a spy cat to a mission by mission Id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "missions"
+                ],
+                "summary": "Assign a spy cat to a mission",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Mission I (UUID)",
+                        "name": "missionId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Spy cat assignment data",
+                        "name": "spyCat",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.AssignCatRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.MissionSingleResponseDto"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid mission Id or spy cat data",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/missions/{missionId}/targets": {
+            "post": {
+                "description": "Adds a new target to the specified mission by mission Id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "missions"
+                ],
+                "summary": "Add a target to a mission",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Mission Id (UUID)",
+                        "name": "missionId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Target data",
+                        "name": "target",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.MissionTargetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.MissionSingleResponseDto"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid mission Id or target data",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/missions/{missionId}/targets/{targetId}": {
+            "delete": {
+                "description": "Deletes a mission target by its Id. Fails if the target is already completed.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "missions"
+                ],
+                "summary": "Delete a mission target",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Mission Id (UUID)",
+                        "name": "missionId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Target Id (UUID)",
+                        "name": "targetId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid target Id",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Target not found or already completed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Updates a mission target by its Id. Notes cannot be modified if the target is completed.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "missions"
+                ],
+                "summary": "Update mission target",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Mission Id (UUID)",
+                        "name": "missionId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Target Id (UUID)",
+                        "name": "targetId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Target update data",
+                        "name": "target",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.TargetUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.MissionSingleResponseDto"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid mission Id, target Id, or notes can't be modified",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Target not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/spycats": {
+            "get": {
+                "description": "Retrieves a list of all spy cats.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "spycats"
+                ],
+                "summary": "Get all spy cats",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dtos.SpyCatAllResponseDto"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new spycat with the provided data.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "spycats"
+                ],
+                "summary": "Create a new spycat",
+                "parameters": [
+                    {
+                        "description": "Spycat data",
+                        "name": "spycat",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.SpyCatCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.SpyCatSingleResponseDto"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid spycat data or breed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes multiple spy cats by their Ids.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "spycats"
+                ],
+                "summary": "Delete many spy cats",
+                "parameters": [
+                    {
+                        "description": "Ids to delete",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.DeletedIds"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid spycat ids",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Spy cat not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/spycats/{spycatId}": {
+            "get": {
+                "description": "Retrieves a spy cat by its Id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "spycats"
+                ],
+                "summary": "Get a single spy cat",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Spycat Id (UUID)",
+                        "name": "spycatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.SpyCatSingleResponseDto"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid spycat Id",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Spy cat not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes a spy cat by its Id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "spycats"
+                ],
+                "summary": "Delete a single spy cat",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "SpyCat Id (UUID)",
+                        "name": "spycatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid spycat Id",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Spy cat not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Updates the salary of a spy cat by its I.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "spycats"
+                ],
+                "summary": "Update spy cat salary",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Spycat Id (UUID)",
+                        "name": "spycatId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New salary data",
+                        "name": "salary",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.SalaryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.SpyCatSingleResponseDto"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid spycat Id or salary data",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Spy cat not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dtos.AssignCatRequest": {
+            "type": "object",
+            "properties": {
+                "spycat_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.CompletionStateRequest": {
+            "type": "object",
+            "properties": {
+                "complete_state": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.DeletedIds": {
+            "type": "object",
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "dtos.MissionAllResponseDto": {
+            "type": "object",
+            "properties": {
+                "complete_state": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "spycat_name": {
+                    "type": "string"
+                },
+                "targets": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.MissionCreateRequest": {
+            "type": "object",
+            "properties": {
+                "complete_state": {
+                    "type": "string"
+                },
+                "targets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.MissionTargetRequest"
+                    }
+                }
+            }
+        },
+        "dtos.MissionSingleCreateResponseDto": {
+            "type": "object",
+            "properties": {
+                "complete_state": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "targets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.TargetDto"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.MissionSingleResponseDto": {
+            "type": "object",
+            "properties": {
+                "complete_state": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "spycat": {
+                    "$ref": "#/definitions/dtos.SpyCatSingleResponseDto"
+                },
+                "targets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.TargetDto"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.MissionTargetRequest": {
+            "type": "object",
+            "properties": {
+                "complete_state": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.SalaryRequest": {
+            "type": "object",
+            "properties": {
+                "salary": {
+                    "type": "number"
+                }
+            }
+        },
+        "dtos.SpyCatAllResponseDto": {
+            "type": "object",
+            "properties": {
+                "breed": {
+                    "type": "string"
+                },
+                "experience_years": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "salary": {
+                    "type": "number"
+                }
+            }
+        },
+        "dtos.SpyCatCreateRequest": {
+            "type": "object",
+            "properties": {
+                "breed": {
+                    "type": "string"
+                },
+                "experience_years": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "salary": {
+                    "type": "number"
+                }
+            }
+        },
+        "dtos.SpyCatSingleResponseDto": {
+            "type": "object",
+            "properties": {
+                "breed": {
+                    "type": "string"
+                },
+                "experience_years": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "salary": {
+                    "type": "number"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.TargetDto": {
+            "type": "object",
+            "properties": {
+                "complete_state": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.TargetUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "complete_state": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

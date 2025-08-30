@@ -1,0 +1,692 @@
+basePath: /api
+definitions:
+  dtos.AssignCatRequest:
+    properties:
+      spycat_id:
+        type: string
+    type: object
+  dtos.CompletionStateRequest:
+    properties:
+      complete_state:
+        type: string
+    type: object
+  dtos.DeletedIds:
+    properties:
+      ids:
+        items:
+          type: string
+        type: array
+    type: object
+  dtos.MissionAllResponseDto:
+    properties:
+      complete_state:
+        type: string
+      id:
+        type: string
+      spycat_name:
+        type: string
+      targets:
+        items:
+          type: string
+        type: array
+      updated_at:
+        type: string
+    type: object
+  dtos.MissionCreateRequest:
+    properties:
+      complete_state:
+        type: string
+      targets:
+        items:
+          $ref: '#/definitions/dtos.MissionTargetRequest'
+        type: array
+    type: object
+  dtos.MissionSingleCreateResponseDto:
+    properties:
+      complete_state:
+        type: string
+      id:
+        type: string
+      targets:
+        items:
+          $ref: '#/definitions/dtos.TargetDto'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  dtos.MissionSingleResponseDto:
+    properties:
+      complete_state:
+        type: string
+      id:
+        type: string
+      spycat:
+        $ref: '#/definitions/dtos.SpyCatSingleResponseDto'
+      targets:
+        items:
+          $ref: '#/definitions/dtos.TargetDto'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  dtos.MissionTargetRequest:
+    properties:
+      complete_state:
+        type: string
+      country:
+        type: string
+      name:
+        type: string
+      notes:
+        type: string
+    type: object
+  dtos.SalaryRequest:
+    properties:
+      salary:
+        type: number
+    type: object
+  dtos.SpyCatAllResponseDto:
+    properties:
+      breed:
+        type: string
+      experience_years:
+        type: integer
+      id:
+        type: string
+      name:
+        type: string
+      salary:
+        type: number
+    type: object
+  dtos.SpyCatCreateRequest:
+    properties:
+      breed:
+        type: string
+      experience_years:
+        type: integer
+      name:
+        type: string
+      salary:
+        type: number
+    type: object
+  dtos.SpyCatSingleResponseDto:
+    properties:
+      breed:
+        type: string
+      experience_years:
+        type: integer
+      id:
+        type: string
+      name:
+        type: string
+      salary:
+        type: number
+      updated_at:
+        type: string
+    type: object
+  dtos.TargetDto:
+    properties:
+      complete_state:
+        type: string
+      country:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      notes:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dtos.TargetUpdateRequest:
+    properties:
+      complete_state:
+        type: string
+      notes:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API for managing spy cats and missions with targets.
+  title: SpyCats Service API
+  version: "1.0"
+paths:
+  /missions:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of all missions with their spy cats and targets.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dtos.MissionAllResponseDto'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all missions
+      tags:
+      - missions
+    post:
+      consumes:
+      - application/json
+      description: Creates a new mission with the provided data.
+      parameters:
+      - description: Mission creation data
+        in: body
+        name: mission
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.MissionCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dtos.MissionSingleCreateResponseDto'
+        "400":
+          description: Invalid mission data or targets number
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new mission
+      tags:
+      - missions
+  /missions/{missionId}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a mission by its Id. Fails if the mission is already assigned
+        to a spy cat.
+      parameters:
+      - description: Mission Id (UUID)
+        in: path
+        name: missionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid mission Id
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Mission not found or already assigned
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a mission
+      tags:
+      - missions
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a mission by its Id, including its spy cat and targets.
+      parameters:
+      - description: Mission Id (UUID)
+        in: path
+        name: missionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.MissionSingleResponseDto'
+        "400":
+          description: Invalid mission Id
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Mission not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a single mission
+      tags:
+      - missions
+    patch:
+      consumes:
+      - application/json
+      description: Updates the completion state of a mission by its Id.
+      parameters:
+      - description: Mission Id (UUID)
+        in: path
+        name: missionId
+        required: true
+        type: string
+      - description: Completion state data
+        in: body
+        name: completionState
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CompletionStateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.MissionSingleResponseDto'
+        "400":
+          description: Invalid mission Id or completion state data
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Mission not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update mission completion state
+      tags:
+      - missions
+  /missions/{missionId}/spycats:
+    post:
+      consumes:
+      - application/json
+      description: Assigns a spy cat to a mission by mission Id.
+      parameters:
+      - description: Mission I (UUID)
+        in: path
+        name: missionId
+        required: true
+        type: string
+      - description: Spy cat assignment data
+        in: body
+        name: spyCat
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.AssignCatRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dtos.MissionSingleResponseDto'
+        "400":
+          description: Invalid mission Id or spy cat data
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Assign a spy cat to a mission
+      tags:
+      - missions
+  /missions/{missionId}/targets:
+    post:
+      consumes:
+      - application/json
+      description: Adds a new target to the specified mission by mission Id.
+      parameters:
+      - description: Mission Id (UUID)
+        in: path
+        name: missionId
+        required: true
+        type: string
+      - description: Target data
+        in: body
+        name: target
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.MissionTargetRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dtos.MissionSingleResponseDto'
+        "400":
+          description: Invalid mission Id or target data
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Add a target to a mission
+      tags:
+      - missions
+  /missions/{missionId}/targets/{targetId}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a mission target by its Id. Fails if the target is already
+        completed.
+      parameters:
+      - description: Mission Id (UUID)
+        in: path
+        name: missionId
+        required: true
+        type: string
+      - description: Target Id (UUID)
+        in: path
+        name: targetId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid target Id
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Target not found or already completed
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a mission target
+      tags:
+      - missions
+    patch:
+      consumes:
+      - application/json
+      description: Updates a mission target by its Id. Notes cannot be modified if
+        the target is completed.
+      parameters:
+      - description: Mission Id (UUID)
+        in: path
+        name: missionId
+        required: true
+        type: string
+      - description: Target Id (UUID)
+        in: path
+        name: targetId
+        required: true
+        type: string
+      - description: Target update data
+        in: body
+        name: target
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.TargetUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.MissionSingleResponseDto'
+        "400":
+          description: Invalid mission Id, target Id, or notes can't be modified
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Target not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update mission target
+      tags:
+      - missions
+  /spycats:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes multiple spy cats by their Ids.
+      parameters:
+      - description: Ids to delete
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.DeletedIds'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid spycat ids
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Spy cat not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete many spy cats
+      tags:
+      - spycats
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of all spy cats.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dtos.SpyCatAllResponseDto'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all spy cats
+      tags:
+      - spycats
+    post:
+      consumes:
+      - application/json
+      description: Creates a new spycat with the provided data.
+      parameters:
+      - description: Spycat data
+        in: body
+        name: spycat
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.SpyCatCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dtos.SpyCatSingleResponseDto'
+        "400":
+          description: Invalid spycat data or breed
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new spycat
+      tags:
+      - spycats
+  /spycats/{spycatId}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a spy cat by its Id.
+      parameters:
+      - description: SpyCat Id (UUID)
+        in: path
+        name: spycatId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid spycat Id
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Spy cat not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a single spy cat
+      tags:
+      - spycats
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a spy cat by its Id.
+      parameters:
+      - description: Spycat Id (UUID)
+        in: path
+        name: spycatId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.SpyCatSingleResponseDto'
+        "400":
+          description: Invalid spycat Id
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Spy cat not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a single spy cat
+      tags:
+      - spycats
+    patch:
+      consumes:
+      - application/json
+      description: Updates the salary of a spy cat by its I.
+      parameters:
+      - description: Spycat Id (UUID)
+        in: path
+        name: spycatId
+        required: true
+        type: string
+      - description: New salary data
+        in: body
+        name: salary
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.SalaryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.SpyCatSingleResponseDto'
+        "400":
+          description: Invalid spycat Id or salary data
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Spy cat not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update spy cat salary
+      tags:
+      - spycats
+schemes:
+- http
+swagger: "2.0"
