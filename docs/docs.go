@@ -1036,8 +1036,6 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "API for managing spy cats and missions with targets.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-	LeftDelim:        "{{",
-	RightDelim:       "}}",
 }
 
 func init() {
