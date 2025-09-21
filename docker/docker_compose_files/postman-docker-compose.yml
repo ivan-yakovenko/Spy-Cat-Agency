@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  newman:
+    image: postman/newman:alpine
+    container_name: spycats-newman
+    depends_on:
+      - api
+    volumes:
+      - ../../postman/collections:/etc/newman
+    entrypoint: ["newman", "run", "/etc/newman/Spycats Collection.postman_collection.json", "--env-var", "baseUrl=http://api:8080"]
+    networks:
+      - spycats-net
+
+networks:
+  spycats-net:
+    external: true
