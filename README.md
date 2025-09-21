@@ -17,10 +17,10 @@ docker network create spycats-net
 docker-compose -f docker/docker_compose_files/postgres-docker-compose.yml up --build -d
 ```
 
-##  Step 3: Build and Start Go Application Container
+##  Step 3: Build and Start Go Application Container and Postman Container
 
 ```
-docker-compose -f docker/docker_compose_files/application-docker-compose.yml up --build -d
+docker-compose -f docker/docker_compose_files/application-docker-compose.yml -f docker/docker_compose_files/postman-docker-compose.yml up --build 
 ```
 
 **Now you can test the application! The Swagger API specification is available at:**  
@@ -34,7 +34,7 @@ docker-compose -f docker/docker_compose_files/postgres-docker-compose.yml down -
 ```
 
 ```
-docker-compose -f docker/docker_compose_files/application-docker-compose.yml down
+docker-compose -f docker/docker_compose_files/application-docker-compose.yml -f docker/docker_compose_files/postman-docker-compose.yml down
 ```
 
 ```

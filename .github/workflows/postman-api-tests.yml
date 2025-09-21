@@ -24,8 +24,8 @@ jobs:
 
       - name: Wait for services
         run: |
-          echo "Waiting for 90 seconds to let services start..."
-          sleep 90      
+          echo "Waiting for 20 seconds to let services start..."
+          sleep 20      
 
       - name: Stop and clean up Docker containers
         if: always()
