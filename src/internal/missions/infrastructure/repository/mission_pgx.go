@@ -3,7 +3,9 @@ package repository
 import (
 	"Spy-Cat-Agency/src/internal/missions/domain/models"
 	"Spy-Cat-Agency/src/internal/shared/utils/error_handler"
+	models2 "Spy-Cat-Agency/src/internal/spycats/domain/models"
 	"context"
+	"net/http"
 
 	"github.com/go-faster/errors"
 	"github.com/google/uuid"
@@ -19,69 +21,143 @@ func NewMissionPgxRepository(newPool *pgxpool.Pool) *MissionPgxRepository {
 	return &MissionPgxRepository{pool: newPool}
 }
 
-func (spr *MissionPgxRepository) FindAllMissions(ctx context.Context) ([]models.Mission, error) {
+func (mpr *MissionPgxRepository) FindAllMissions(ctx context.Context) (map[uuid.UUID]*models.MissionDetails, error) {
 
-	query := `SELECT id, spycat_id, complete_state, created_at, updated_at FROM missions`
+	query := `SELECT m.id, m.spycat_id, m.complete_state, m.created_at, m.updated_at,
+						sc.name AS spycat_name,
+						t.name AS target_name
+			FROM missions m
+					 LEFT JOIN spy_cats sc ON m.spycat_id = sc.id
+					 LEFT JOIN targets t ON m.id = t.mission_id`
 
-	rows, err := spr.pool.Query(ctx, query)
+	rows, err := mpr.pool.Query(ctx, query)
 
 	if err != nil {
-		return nil, error_handler.ErrorHandler(err, err.Error())
+		return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error executing mission SELECT all query", err)
 	}
 
-	defer rows.Close()
-
-	var missions []models.Mission
+	missionsData := make(map[uuid.UUID]*models.MissionDetails)
 
 	for rows.Next() {
-		var mission models.Mission
+		var (
+			mission    models.Mission
+			targetName *string
+			spyCatName *string
+		)
 		if err := rows.Scan(
 			&mission.Id,
 			&mission.SpyCatId,
 			&mission.CompleteState,
 			&mission.CreatedAt,
 			&mission.UpdatedAt,
+			&spyCatName,
+			&targetName,
 		); err != nil {
-			return nil, error_handler.ErrorHandler(err, err.Error())
+			return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error scanning missions rows from database", err)
 		}
-		missions = append(missions, mission)
+
+		m, ok := missionsData[mission.Id]
+
+		if !ok {
+			m = &models.MissionDetails{
+				Mission:     mission,
+				SpyCatName:  spyCatName,
+				TargetNames: []string{},
+			}
+			missionsData[mission.Id] = m
+		}
+
+		if targetName != nil {
+			m.TargetNames = append(m.TargetNames, *targetName)
+		}
 	}
 
 	if rows.Err() != nil {
-		return nil, error_handler.ErrorHandler(err, rows.Err().Error())
+		return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Database error", rows.Err())
 	}
 
-	return missions, nil
+	return missionsData, nil
 
 }
 
-func (spr *MissionPgxRepository) FindMissionById(ctx context.Context, id uuid.UUID) (*models.Mission, error) {
+func (mpr *MissionPgxRepository) FindMissionById(ctx context.Context, id uuid.UUID) (*models.Mission, []models.Target, *models2.SpyCat, error) {
 
-	var mission models.Mission
+	query := `SELECT m.id, m.spycat_id, m.complete_state, m.created_at, m.updated_at,
+       				 sc.id, 
+       				 coalesce(sc.name, '') as name,
+       				 coalesce(sc.experience_years, 0) as experience_years, 
+       				 coalesce(sc.breed, '') as breed,
+       				 coalesce(sc.salary, 0) as salary,
+       				 coalesce(sc.created_at, '1970-01-01 00:00:00') as created_at,
+       				 coalesce (sc.updated_at, '1970-01-01 00:00:00') as updated_at,
+       				 t.id, t.mission_id, t.name, t.country, t.notes, t.complete_state, t.created_at, t.updated_at
+       FROM missions m 
+       LEFT JOIN spy_cats sc ON m.spycat_id = sc.id
+       LEFT JOIN targets t ON m.id = t.mission_id
+       WHERE m.id = $1`
 
-	query := `SELECT id, spycat_id, complete_state, created_at, updated_at FROM missions WHERE id = $1`
-
-	if err := spr.pool.QueryRow(ctx, query, id).Scan(
-		&mission.Id,
-		&mission.SpyCatId,
-		&mission.CompleteState,
-		&mission.CreatedAt,
-		&mission.UpdatedAt,
-	); err != nil {
-		return nil, error_handler.ErrorHandler(err, err.Error())
+	rows, err := mpr.pool.Query(ctx, query, id)
+	if err != nil {
+		return nil, nil, nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error executing mission SELECT query", err)
 	}
 
-	return &mission, nil
+	defer rows.Close()
+
+	var (
+		mission *models.Mission
+		spycat  *models2.SpyCat
+		targets []models.Target
+	)
+
+	for rows.Next() {
+		var (
+			m    models.Mission
+			sc   models2.SpyCat
+			t    models.Target
+			scId *uuid.UUID
+			tId  *uuid.UUID
+		)
+
+		if err := rows.Scan(
+			&m.Id, &scId, &m.CompleteState, &m.CreatedAt, &m.UpdatedAt,
+			&sc.Id, &sc.Name, &sc.ExperienceYears, &sc.Breed, &sc.Salary, &sc.CreatedAt, &sc.UpdatedAt,
+			&tId, &t.MissionId, &t.Name, &t.Country, &t.Notes, &t.CompleteState, &t.CreatedAt, &t.UpdatedAt,
+		); err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return nil, nil, nil, error_handler.NewCustomError(http.StatusNotFound, "No such mission found in the database", err)
+			}
+			return nil, nil, nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error scanning missions rows from database", err)
+		}
+		if mission == nil {
+			m.SpyCatId = scId
+			mission = &m
+			if scId != nil {
+				spycat = &sc
+			} else {
+				spycat = &models2.SpyCat{}
+			}
+		}
+		if tId != nil {
+			t.Id = *tId
+			targets = append(targets, t)
+		}
+	}
+
+	if mission == nil {
+		return nil, nil, nil, error_handler.NewCustomError(http.StatusInternalServerError, "No missions found in database", err)
+	}
+
+	return mission, targets, spycat, nil
 }
 
-func (spr *MissionPgxRepository) FindMissionTargetsById(ctx context.Context, missionId uuid.UUID) ([]models.Target, error) {
+func (mpr *MissionPgxRepository) FindMissionTargetsById(ctx context.Context, missionId uuid.UUID) ([]models.Target, error) {
 
 	query := `SELECT id, mission_id, name, country, notes, complete_state, created_at, updated_at FROM targets WHERE mission_id = $1`
 
-	rows, err := spr.pool.Query(ctx, query, missionId)
+	rows, err := mpr.pool.Query(ctx, query, missionId)
 
 	if err != nil {
-		return nil, error_handler.ErrorHandler(err, err.Error())
+		return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error executing targets SELECT query", err)
 	}
 
 	defer rows.Close()
@@ -100,26 +176,26 @@ func (spr *MissionPgxRepository) FindMissionTargetsById(ctx context.Context, mis
 			&target.CreatedAt,
 			&target.UpdatedAt,
 		); err != nil {
-			return nil, error_handler.ErrorHandler(err, err.Error())
+			return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error scanning targets rows from database", err)
 		}
 		targets = append(targets, target)
 	}
 
 	if rows.Err() != nil {
-		return nil, error_handler.ErrorHandler(err, rows.Err().Error())
+		return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Database error", err)
 	}
 
 	return targets, nil
 
 }
 
-func (spr *MissionPgxRepository) FindTargetById(ctx context.Context, targetId uuid.UUID) (*models.Target, error) {
+func (mpr *MissionPgxRepository) FindTargetById(ctx context.Context, targetId uuid.UUID) (*models.Target, error) {
 
 	var target models.Target
 
 	query := `SELECT id, mission_id, name, country, notes, complete_state, created_at, updated_at FROM targets WHERE id = $1`
 
-	if err := spr.pool.QueryRow(ctx, query, targetId).Scan(
+	if err := mpr.pool.QueryRow(ctx, query, targetId).Scan(
 		&target.Id,
 		&target.MissionId,
 		&target.Name,
@@ -129,24 +205,23 @@ func (spr *MissionPgxRepository) FindTargetById(ctx context.Context, targetId uu
 		&target.CreatedAt,
 		&target.UpdatedAt,
 	); err != nil {
-		return nil, error_handler.ErrorHandler(err, err.Error())
+		return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error executing target SELECT query", err)
 	}
 
 	return &target, nil
 
 }
 
-func (spr *MissionPgxRepository) Create(ctx context.Context, tx pgx.Tx, newMission *models.Mission, newTargets []models.Target) (*models.Mission, error) {
+func (mpr *MissionPgxRepository) Create(ctx context.Context, tx pgx.Tx, newMission *models.Mission, newTargets []models.Target) (*models.Mission, error) {
 
 	newMissionQuery := `INSERT INTO missions (id, spycat_id, complete_state) VALUES ($1, $2, $3) RETURNING id, complete_state, created_at, updated_at`
 
-	if err := tx.QueryRow(ctx, newMissionQuery, newMission.Id, newMission.SpyCatId,
-		newMission.CompleteState).Scan(
+	if err := tx.QueryRow(ctx, newMissionQuery, newMission.Id, newMission.SpyCatId, newMission.CompleteState).Scan(
 		&newMission.Id,
 		&newMission.CompleteState,
 		&newMission.CreatedAt,
 		&newMission.UpdatedAt); err != nil {
-		return nil, error_handler.ErrorHandler(err, err.Error())
+		return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error inserting new mission", err)
 	}
 
 	newTargetQuery := `INSERT INTO targets (id, mission_id, name, country, notes, complete_state) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, country, notes, complete_state, created_at, updated_at`
@@ -166,14 +241,14 @@ func (spr *MissionPgxRepository) Create(ctx context.Context, tx pgx.Tx, newMissi
 			&target.CreatedAt,
 			&target.UpdatedAt,
 		); err != nil {
-			return nil, error_handler.ErrorHandler(err, err.Error())
+			return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error inserting new target", err)
 		}
 	}
 
 	return newMission, nil
 }
 
-func (spr *MissionPgxRepository) AssignCatToMission(ctx context.Context, tx pgx.Tx, mission *models.Mission) (*models.Mission, error) {
+func (mpr *MissionPgxRepository) AssignCatToMission(ctx context.Context, tx pgx.Tx, mission *models.Mission) (*models.Mission, error) {
 
 	query := `UPDATE missions SET spycat_id = $1 WHERE id = $2 
               RETURNING id, spycat_id, complete_state, created_at, updated_at`
@@ -184,13 +259,13 @@ func (spr *MissionPgxRepository) AssignCatToMission(ctx context.Context, tx pgx.
 		&mission.CompleteState,
 		&mission.CreatedAt,
 		&mission.UpdatedAt); err != nil {
-		return nil, error_handler.ErrorHandler(err, err.Error())
+		return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error updating mission with the new spy cat", err)
 	}
 
 	return mission, nil
 }
 
-func (spr *MissionPgxRepository) CreateTarget(ctx context.Context, tx pgx.Tx, target *models.Target) (*models.Target, error) {
+func (mpr *MissionPgxRepository) CreateTarget(ctx context.Context, tx pgx.Tx, target *models.Target) (*models.Target, error) {
 	query := `INSERT INTO targets (id, mission_id, name, country, notes, complete_state)
 			  VALUES ($1, $2, $3, $4, $5, $6)
 			  RETURNING id, mission_id, name, country, notes, complete_state, created_at, updated_at`
@@ -209,13 +284,13 @@ func (spr *MissionPgxRepository) CreateTarget(ctx context.Context, tx pgx.Tx, ta
 		&createdTarget.CompleteState,
 		&createdTarget.CreatedAt,
 		&createdTarget.UpdatedAt); err != nil {
-		return nil, error_handler.ErrorHandler(err, err.Error())
+		return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error inserting new target", err)
 	}
 
 	return &createdTarget, nil
 }
 
-func (spr *MissionPgxRepository) UpdateMission(ctx context.Context, tx pgx.Tx, updatedMission *models.Mission) (*models.Mission, error) {
+func (mpr *MissionPgxRepository) UpdateMission(ctx context.Context, tx pgx.Tx, updatedMission *models.Mission) (*models.Mission, error) {
 
 	query := `UPDATE missions SET complete_state = $1 WHERE id = $2 
               RETURNING id, spycat_id, complete_state, created_at, updated_at`
@@ -230,15 +305,15 @@ func (spr *MissionPgxRepository) UpdateMission(ctx context.Context, tx pgx.Tx, u
 		&updatedMission.CreatedAt,
 		&updatedMission.UpdatedAt); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, error_handler.ErrorHandler(err, pgx.ErrNoRows.Error())
+			return nil, error_handler.NewCustomError(http.StatusInternalServerError, "No rows to update in missions from database", pgx.ErrNoRows)
 		}
-		return nil, error_handler.ErrorHandler(err, err.Error())
+		return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error updating mission", err)
 	}
 
 	return updatedMission, nil
 }
 
-func (spr *MissionPgxRepository) UpdateTarget(ctx context.Context, tx pgx.Tx, updatedTarget *models.Target) (*models.Target, error) {
+func (mpr *MissionPgxRepository) UpdateTarget(ctx context.Context, tx pgx.Tx, updatedTarget *models.Target) (*models.Target, error) {
 
 	query := `UPDATE targets SET notes = $1, complete_state = $2 WHERE id = $3
 			  RETURNING id, mission_id, name, country, notes, 
@@ -256,44 +331,44 @@ func (spr *MissionPgxRepository) UpdateTarget(ctx context.Context, tx pgx.Tx, up
 		&updatedTarget.UpdatedAt,
 	); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, error_handler.ErrorHandler(err, pgx.ErrNoRows.Error())
+			return nil, error_handler.NewCustomError(http.StatusInternalServerError, "No rows to update in targets from database", pgx.ErrNoRows)
 		}
-		return nil, error_handler.ErrorHandler(err, err.Error())
+		return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error updating target", err)
 	}
 
 	return updatedTarget, nil
 }
 
-func (spr *MissionPgxRepository) DeleteMissionById(ctx context.Context, tx pgx.Tx, id uuid.UUID) error {
+func (mpr *MissionPgxRepository) DeleteMissionById(ctx context.Context, tx pgx.Tx, id uuid.UUID) error {
 
 	query := `DELETE FROM missions WHERE id = $1`
 
 	cmdTag, err := tx.Exec(ctx, query, id)
 
 	if err != nil {
-		return error_handler.ErrorHandler(err, err.Error())
+		return error_handler.NewCustomError(http.StatusInternalServerError, "Error executing database DELETE query for mission", err)
 	}
 
 	if cmdTag.RowsAffected() == 0 {
-		return pgx.ErrNoRows
+		return error_handler.NewCustomError(http.StatusInternalServerError, "No rows to delete in missions from database", err)
 	}
 
 	return nil
 
 }
 
-func (spr *MissionPgxRepository) DeleteTargetById(ctx context.Context, tx pgx.Tx, id uuid.UUID) error {
+func (mpr *MissionPgxRepository) DeleteTargetById(ctx context.Context, tx pgx.Tx, id uuid.UUID) error {
 
 	query := `DELETE FROM targets WHERE id = $1`
 
 	cmdTag, err := tx.Exec(ctx, query, id)
 
 	if err != nil {
-		return error_handler.ErrorHandler(err, err.Error())
+		return error_handler.NewCustomError(http.StatusInternalServerError, "Error executing database DELETE query for target", err)
 	}
 
 	if cmdTag.RowsAffected() == 0 {
-		return pgx.ErrNoRows
+		return error_handler.NewCustomError(http.StatusInternalServerError, "No rows to delete in targets from database", err)
 	}
 
 	return nil

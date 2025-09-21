@@ -1,13 +1,12 @@
 package handlers
 
 import (
-	"Spy-Cat-Agency/src/internal/missions/application/services"
+	"Spy-Cat-Agency/src/internal/shared/utils/error_handler"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-faster/errors"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 )
 
 // DeleteSingleTargetHandler godoc
@@ -25,25 +24,15 @@ import (
 // @Router       /missions/{missionId}/targets/{targetId} [delete]
 func (h *MissionHandler) DeleteSingleTargetHandler(c *gin.Context) {
 
-	targetIdStr := c.Param("targetId")
-
-	targetId, err := uuid.Parse(targetIdStr)
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid target Id"})
-		return
-	}
+	targetId := c.MustGet("targetId").(uuid.UUID)
 
 	if err := h.Service.DeleteSingleTarget(c.Request.Context(), targetId); err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Mission not found"})
+		var customErr *error_handler.CustomError
+		if errors.As(err, &customErr) {
+			c.JSON(customErr.Code, gin.H{"error": customErr.Message})
 			return
 		}
-		if errors.Is(err, services.ErrorTargetCompleted) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": services.ErrorTargetCompleted.Error()})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
 

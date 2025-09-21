@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"Spy-Cat-Agency/src/internal/missions/dtos"
-	"Spy-Cat-Agency/src/internal/spycats/application/services"
+	"Spy-Cat-Agency/src/internal/shared/utils/error_handler"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -24,29 +24,18 @@ import (
 // @Router       /missions/{missionId}/targets [post]
 func (h *MissionHandler) CreateTargetHandler(c *gin.Context) {
 
-	idStr := c.Param("missionId")
+	missionId := c.MustGet("missionId").(uuid.UUID)
 
-	id, err := uuid.Parse(idStr)
+	targetReq := c.MustGet("targetReq").(dtos.MissionTargetRequest)
 
+	newTarget, err := h.Service.CreateTarget(c.Request.Context(), targetReq, missionId)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid mission Id"})
-		return
-	}
-
-	var targetReq dtos.MissionTargetRequest
-
-	if err := c.ShouldBindJSON(&targetReq); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid target data"})
-		return
-	}
-
-	newTarget, err := h.Service.CreateTarget(c.Request.Context(), targetReq, id)
-	if err != nil {
-		if errors.Is(err, services.ErrorInvalidBreed) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		var customErr *error_handler.CustomError
+		if errors.As(err, &customErr) {
+			c.JSON(customErr.Code, gin.H{"error": customErr.Message})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
 

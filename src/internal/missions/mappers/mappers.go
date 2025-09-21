@@ -36,27 +36,16 @@ func MissionSingleToDto(mission *models.Mission, spyCat *models2.SpyCat, targets
 	}
 }
 
-func TargetsNamesToDto(targets []models.Target) []string {
+func MissionsToDto(missions map[uuid.UUID]*models.MissionDetails) []dtos.MissionAllResponseDto {
 
-	targetsNames := make([]string, 0)
-
-	for _, target := range targets {
-		targetsNames = append(targetsNames, target.Name)
-	}
-
-	return targetsNames
-}
-
-func MissionsToDto(missions []models.Mission, spyCats map[uuid.UUID]string, targetsNames map[uuid.UUID][]string) []dtos.MissionAllResponseDto {
-
-	missionsResponse := make([]dtos.MissionAllResponseDto, 0)
+	missionsResponse := make([]dtos.MissionAllResponseDto, 0, len(missions))
 
 	for _, mission := range missions {
 
 		var spyCatName string
 
-		if mission.SpyCatId != nil {
-			spyCatName = spyCats[*mission.SpyCatId]
+		if mission.SpyCatName != nil {
+			spyCatName = *mission.SpyCatName
 		} else {
 			spyCatName = ""
 		}
@@ -65,7 +54,7 @@ func MissionsToDto(missions []models.Mission, spyCats map[uuid.UUID]string, targ
 			Id:            mission.Id,
 			CompleteState: string(mission.CompleteState),
 			SpyCatName:    spyCatName,
-			Targets:       targetsNames[mission.Id],
+			Targets:       mission.TargetNames,
 			UpdatedAt:     mission.UpdatedAt,
 		})
 	}

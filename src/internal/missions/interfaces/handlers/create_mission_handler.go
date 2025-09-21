@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"Spy-Cat-Agency/src/internal/missions/dtos"
-	"Spy-Cat-Agency/src/internal/spycats/application/services"
+	"Spy-Cat-Agency/src/internal/shared/utils/error_handler"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -22,20 +22,16 @@ import (
 // @Router       /missions [post]
 func (h *MissionHandler) CreateMissionHandler(c *gin.Context) {
 
-	var missionReq dtos.MissionCreateRequest
-
-	if err := c.ShouldBindJSON(&missionReq); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid mission data"})
-		return
-	}
+	missionReq := c.MustGet("missionReq").(dtos.MissionCreateRequest)
 
 	newMission, err := h.Service.CreateMission(c.Request.Context(), missionReq)
 	if err != nil {
-		if errors.Is(err, services.ErrorInvalidBreed) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		var customErr *error_handler.CustomError
+		if errors.As(err, &customErr) {
+			c.JSON(customErr.Code, gin.H{"error": customErr.Message})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
 

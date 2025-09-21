@@ -1,14 +1,13 @@
 package handlers
 
 import (
-	"Spy-Cat-Agency/src/internal/missions/application/services"
 	"Spy-Cat-Agency/src/internal/missions/dtos"
+	"Spy-Cat-Agency/src/internal/shared/utils/error_handler"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-faster/errors"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 )
 
 // UpdateTargetHandler godoc
@@ -27,42 +26,20 @@ import (
 // @Router       /missions/{missionId}/targets/{targetId} [patch]
 func (h *MissionHandler) UpdateTargetHandler(c *gin.Context) {
 
-	missionIdStr := c.Param("missionId")
+	missionId := c.MustGet("missionId").(uuid.UUID)
 
-	missionId, err := uuid.Parse(missionIdStr)
+	targetId := c.MustGet("targetId").(uuid.UUID)
 
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid mission Id"})
-		return
-	}
-
-	targetIdStr := c.Param("targetId")
-
-	targetId, err := uuid.Parse(targetIdStr)
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid target Id"})
-		return
-	}
-
-	var targetReq dtos.TargetUpdateRequest
-
-	if err := c.ShouldBindJSON(&targetReq); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid completion state data"})
-		return
-	}
+	targetReq := c.MustGet("targetReq").(dtos.TargetUpdateRequest)
 
 	target, err := h.Service.UpdateTarget(c.Request.Context(), targetReq, missionId, targetId)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Target not found"})
+		var customErr *error_handler.CustomError
+		if errors.As(err, &customErr) {
+			c.JSON(customErr.Code, gin.H{"error": customErr.Message})
 			return
 		}
-		if errors.Is(err, services.ErrorNotesCantBeModified) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": services.ErrorNotesCantBeModified.Error()})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
 
