@@ -30,7 +30,7 @@ docker-compose -f docker/docker_compose_files/application-docker-compose.yml up 
 ## Stop & CleanUp
 
 ```
-docker-compose -f docker/docker_compose_files/postgres-docker-compose.yml down
+docker-compose -f docker/docker_compose_files/postgres-docker-compose.yml down -v
 ```
 
 ```

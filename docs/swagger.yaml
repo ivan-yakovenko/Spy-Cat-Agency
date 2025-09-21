@@ -4,11 +4,15 @@ definitions:
     properties:
       spycat_id:
         type: string
+    required:
+    - spycat_id
     type: object
   dtos.CompletionStateRequest:
     properties:
       complete_state:
         type: string
+    required:
+    - complete_state
     type: object
   dtos.DeletedIds:
     properties:
@@ -16,6 +20,8 @@ definitions:
         items:
           type: string
         type: array
+    required:
+    - ids
     type: object
   dtos.MissionAllResponseDto:
     properties:
@@ -40,6 +46,9 @@ definitions:
         items:
           $ref: '#/definitions/dtos.MissionTargetRequest'
         type: array
+    required:
+    - complete_state
+    - targets
     type: object
   dtos.MissionSingleCreateResponseDto:
     properties:
@@ -79,11 +88,18 @@ definitions:
         type: string
       notes:
         type: string
+    required:
+    - complete_state
+    - country
+    - name
+    - notes
     type: object
   dtos.SalaryRequest:
     properties:
       salary:
         type: number
+    required:
+    - salary
     type: object
   dtos.SpyCatAllResponseDto:
     properties:
@@ -108,6 +124,11 @@ definitions:
         type: string
       salary:
         type: number
+    required:
+    - breed
+    - experience_years
+    - name
+    - salary
     type: object
   dtos.SpyCatSingleResponseDto:
     properties:
@@ -279,6 +300,7 @@ paths:
       summary: Get a single mission
       tags:
       - missions
+  /missions/{missionId}/completion-state:
     patch:
       consumes:
       - application/json
@@ -646,6 +668,7 @@ paths:
       summary: Get a single spy cat
       tags:
       - spycats
+  /spycats/{spycatId}/salary:
     patch:
       consumes:
       - application/json
