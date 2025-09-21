@@ -1,0 +1,2699 @@
+{
+	"info": {
+		"_postman_id": "2df69c66-c0e3-4936-97c2-590cf3206214",
+		"name": "Spycats Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44619158",
+		"_collection_link": "https://ivanyakovenko.postman.co/workspace/Ivan-Yakovenko's-Workspace~3563f44e-c15a-4161-8c81-0e36c59ad8c4/collection/44619158-2df69c66-c0e3-4936-97c2-590cf3206214?action=share&source=collection_link&creator=44619158"
+	},
+	"item": [
+		{
+			"name": "Flow",
+			"item": [
+				{
+					"name": "Spycats Operations",
+					"item": [
+						{
+							"name": "Add new spycat #1",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const spycatSchema = {",
+											"  type: \"object\",",
+											"  properties: {",
+											"    breed: { type: \"string\" },",
+											"    experience_years: { type: \"number\" },",
+											"    name: { type: \"string\" },",
+											"    salary: { type: \"number\", minimum: 0 }",
+											"  },",
+											"  required: [\"breed\", \"experience_years\", \"name\", \"salary\"],",
+											"  additionalProperties: false",
+											"};",
+											"",
+											"function validateSchema(obj, schema) {",
+											"  const errors = [];",
+											"",
+											"  if (typeof obj !== \"object\" || obj === null) {",
+											"    errors.push(\"Request body should be an object\");",
+											"    return errors;",
+											"  }",
+											"",
+											"  schema.required.forEach(prop => {",
+											"    if (!(prop in obj)) errors.push(`Missing required property: ${prop}`);",
+											"  });",
+											"",
+											"  for (const prop in schema.properties) {",
+											"    if (!(prop in obj)) continue;",
+											"",
+											"    const def = schema.properties[prop];",
+											"    const value = obj[prop];",
+											"",
+											"    if (typeof value !== def.type) {",
+											"      errors.push(`${prop} should be a ${def.type}`);",
+											"      continue;",
+											"    }",
+											"",
+											"    if (def.minimum !== undefined && value < def.minimum) {",
+											"      errors.push(`${prop} should be > ${def.minimum}`);",
+											"    }",
+											"  }",
+											"",
+											"  if (schema.additionalProperties === false) {",
+											"    Object.keys(obj).forEach(key => {",
+											"      if (!(key in schema.properties)) {",
+											"        errors.push(`Unexpected property: ${key}`);",
+											"      }",
+											"    });",
+											"  }",
+											"",
+											"  return errors;",
+											"}",
+											"",
+											"let body;",
+											"try {",
+											"  body = JSON.parse(pm.request.body.raw);",
+											"} catch (e) {",
+											"  pm.test(\"Request body is valid JSON\", () => {",
+											"    pm.expect.fail(\"Body is not valid JSON\");",
+											"  });",
+											"}",
+											"",
+											"const errors = validateSchema(body, spycatSchema);",
+											"",
+											"pm.test(\"Validate Spycat POST body schema\", () => {",
+											"  if (errors.length) {",
+											"    pm.expect.fail(\"Schema validation errors: \" + errors.join(\"; \"));",
+											"  } else {",
+											"    pm.expect(true).to.be.true;",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function() {",
+											"    pm.response.to.have.status(201);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 600ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(600);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})",
+											"",
+											"const jsonData = pm.response.json();",
+											"",
+											"pm.test(\"Spycat's salary is positive\", function() {",
+											"    pm.expect(jsonData.salary).to.be.above(0);",
+											"})",
+											"",
+											"pm.test(\"Spycat ID 1 returned\", function() {",
+											"    pm.expect(jsonData.id, \"Spycat ID 1 should be present\").to.exist;",
+											"    pm.collectionVariables.set(\"spycatId1\", jsonData.id);",
+											"    console.log(\"Captured spycatId 1:\", jsonData.id);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"breed\": \"American Curl\",\n    \"experience_years\": 4,\n    \"name\": \"Lonny\",\n    \"salary\": 40000.00\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/spycats",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"spycats"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add new spycat #2",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const spycatSchema = {",
+											"  type: \"object\",",
+											"  properties: {",
+											"    breed: { type: \"string\" },",
+											"    experience_years: { type: \"number\" },",
+											"    name: { type: \"string\" },",
+											"    salary: { type: \"number\", minimum: 0 }",
+											"  },",
+											"  required: [\"breed\", \"experience_years\", \"name\", \"salary\"],",
+											"  additionalProperties: false",
+											"};",
+											"",
+											"function validateSchema(obj, schema) {",
+											"  const errors = [];",
+											"",
+											"  if (typeof obj !== \"object\" || obj === null) {",
+											"    errors.push(\"Request body should be an object\");",
+											"    return errors;",
+											"  }",
+											"",
+											"  schema.required.forEach(prop => {",
+											"    if (!(prop in obj)) errors.push(`Missing required property: ${prop}`);",
+											"  });",
+											"",
+											"  for (const prop in schema.properties) {",
+											"    if (!(prop in obj)) continue;",
+											"",
+											"    const def = schema.properties[prop];",
+											"    const value = obj[prop];",
+											"",
+											"    if (typeof value !== def.type) {",
+											"      errors.push(`${prop} should be a ${def.type}`);",
+											"      continue;",
+											"    }",
+											"",
+											"    if (def.minimum !== undefined && value < def.minimum) {",
+											"      errors.push(`${prop} should be > ${def.minimum}`);",
+											"    }",
+											"  }",
+											"",
+											"  if (schema.additionalProperties === false) {",
+											"    Object.keys(obj).forEach(key => {",
+											"      if (!(key in schema.properties)) {",
+											"        errors.push(`Unexpected property: ${key}`);",
+											"      }",
+											"    });",
+											"  }",
+											"",
+											"  return errors;",
+											"}",
+											"",
+											"let body;",
+											"try {",
+											"  body = JSON.parse(pm.request.body.raw);",
+											"} catch (e) {",
+											"  pm.test(\"Request body is valid JSON\", () => {",
+											"    pm.expect.fail(\"Body is not valid JSON\");",
+											"  });",
+											"}",
+											"",
+											"const errors = validateSchema(body, spycatSchema);",
+											"",
+											"pm.test(\"Validate Spycat POST body schema\", () => {",
+											"  if (errors.length) {",
+											"    pm.expect.fail(\"Schema validation errors: \" + errors.join(\"; \"));",
+											"  } else {",
+											"    pm.expect(true).to.be.true;",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function() {",
+											"    pm.response.to.have.status(201);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 600ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(600);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})",
+											"",
+											"const jsonData = pm.response.json();",
+											"",
+											"pm.test(\"Spycat's salary is positive\", function() {",
+											"    pm.expect(jsonData.salary).to.be.above(0);",
+											"})",
+											"",
+											"pm.test(\"Spycat ID 2 returned\", function() {",
+											"    pm.expect(jsonData.id, \"Spycat ID 2 should be present\").to.exist;",
+											"    pm.collectionVariables.set(\"spycatId2\", jsonData.id);",
+											"    console.log(\"Captured spycatId 2:\", jsonData.id);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"breed\": \"Sphynx\",\n    \"experience_years\": 3,\n    \"name\": \"Melo\",\n    \"salary\": 26700.00\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/spycats",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"spycats"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add new spycat #3",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const spycatSchema = {",
+											"  type: \"object\",",
+											"  properties: {",
+											"    breed: { type: \"string\" },",
+											"    experience_years: { type: \"number\" },",
+											"    name: { type: \"string\" },",
+											"    salary: { type: \"number\", minimum: 0 }",
+											"  },",
+											"  required: [\"breed\", \"experience_years\", \"name\", \"salary\"],",
+											"  additionalProperties: false",
+											"};",
+											"",
+											"function validateSchema(obj, schema) {",
+											"  const errors = [];",
+											"",
+											"  if (typeof obj !== \"object\" || obj === null) {",
+											"    errors.push(\"Request body should be an object\");",
+											"    return errors;",
+											"  }",
+											"",
+											"  schema.required.forEach(prop => {",
+											"    if (!(prop in obj)) errors.push(`Missing required property: ${prop}`);",
+											"  });",
+											"",
+											"  for (const prop in schema.properties) {",
+											"    if (!(prop in obj)) continue;",
+											"",
+											"    const def = schema.properties[prop];",
+											"    const value = obj[prop];",
+											"",
+											"    if (typeof value !== def.type) {",
+											"      errors.push(`${prop} should be a ${def.type}`);",
+											"      continue;",
+											"    }",
+											"",
+											"    if (def.minimum !== undefined && value < def.minimum) {",
+											"      errors.push(`${prop} should be > ${def.minimum}`);",
+											"    }",
+											"  }",
+											"",
+											"  if (schema.additionalProperties === false) {",
+											"    Object.keys(obj).forEach(key => {",
+											"      if (!(key in schema.properties)) {",
+											"        errors.push(`Unexpected property: ${key}`);",
+											"      }",
+											"    });",
+											"  }",
+											"",
+											"  return errors;",
+											"}",
+											"",
+											"let body;",
+											"try {",
+											"  body = JSON.parse(pm.request.body.raw);",
+											"} catch (e) {",
+											"  pm.test(\"Request body is valid JSON\", () => {",
+											"    pm.expect.fail(\"Body is not valid JSON\");",
+											"  });",
+											"}",
+											"",
+											"const errors = validateSchema(body, spycatSchema);",
+											"",
+											"pm.test(\"Validate Spycat POST body schema\", () => {",
+											"  if (errors.length) {",
+											"    pm.expect.fail(\"Schema validation errors: \" + errors.join(\"; \"));",
+											"  } else {",
+											"    pm.expect(true).to.be.true;",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function() {",
+											"    pm.response.to.have.status(201);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 600ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(600);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})",
+											"",
+											"const jsonData = pm.response.json();",
+											"",
+											"pm.test(\"Spycat's salary is positive\", function() {",
+											"    pm.expect(jsonData.salary).to.be.above(0);",
+											"})",
+											"",
+											"pm.test(\"Spycat ID 3 returned\", function() {",
+											"    pm.expect(jsonData.id, \"Spycat ID 3 should be present\").to.exist;",
+											"    pm.collectionVariables.set(\"spycatId3\", jsonData.id);",
+											"    console.log(\"Captured spycatId 3:\", jsonData.id);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"breed\": \"Birman\",\n    \"experience_years\": 8,\n    \"name\": \"Jonathan\",\n    \"salary\": 80000.00\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/spycats",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"spycats"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add new spycat #4",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const spycatSchema = {",
+											"  type: \"object\",",
+											"  properties: {",
+											"    breed: { type: \"string\" },",
+											"    experience_years: { type: \"number\" },",
+											"    name: { type: \"string\" },",
+											"    salary: { type: \"number\", minimum: 0 }",
+											"  },",
+											"  required: [\"breed\", \"experience_years\", \"name\", \"salary\"],",
+											"  additionalProperties: false",
+											"};",
+											"",
+											"function validateSchema(obj, schema) {",
+											"  const errors = [];",
+											"",
+											"  if (typeof obj !== \"object\" || obj === null) {",
+											"    errors.push(\"Request body should be an object\");",
+											"    return errors;",
+											"  }",
+											"",
+											"  schema.required.forEach(prop => {",
+											"    if (!(prop in obj)) errors.push(`Missing required property: ${prop}`);",
+											"  });",
+											"",
+											"  for (const prop in schema.properties) {",
+											"    if (!(prop in obj)) continue;",
+											"",
+											"    const def = schema.properties[prop];",
+											"    const value = obj[prop];",
+											"",
+											"    if (typeof value !== def.type) {",
+											"      errors.push(`${prop} should be a ${def.type}`);",
+											"      continue;",
+											"    }",
+											"",
+											"    if (def.minimum !== undefined && value < def.minimum) {",
+											"      errors.push(`${prop} should be > ${def.minimum}`);",
+											"    }",
+											"  }",
+											"",
+											"  if (schema.additionalProperties === false) {",
+											"    Object.keys(obj).forEach(key => {",
+											"      if (!(key in schema.properties)) {",
+											"        errors.push(`Unexpected property: ${key}`);",
+											"      }",
+											"    });",
+											"  }",
+											"",
+											"  return errors;",
+											"}",
+											"",
+											"let body;",
+											"try {",
+											"  body = JSON.parse(pm.request.body.raw);",
+											"} catch (e) {",
+											"  pm.test(\"Request body is valid JSON\", () => {",
+											"    pm.expect.fail(\"Body is not valid JSON\");",
+											"  });",
+											"}",
+											"",
+											"const errors = validateSchema(body, spycatSchema);",
+											"",
+											"pm.test(\"Validate Spycat POST body schema\", () => {",
+											"  if (errors.length) {",
+											"    pm.expect.fail(\"Schema validation errors: \" + errors.join(\"; \"));",
+											"  } else {",
+											"    pm.expect(true).to.be.true;",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function() {",
+											"    pm.response.to.have.status(201);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 600ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(600);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})",
+											"",
+											"const jsonData = pm.response.json();",
+											"",
+											"pm.test(\"Spycat's salary is positive\", function() {",
+											"    pm.expect(jsonData.salary).to.be.above(0);",
+											"})",
+											"",
+											"pm.test(\"Spycat ID 4 returned\", function() {",
+											"    pm.expect(jsonData.id, \"Spycat ID 4 should be present\").to.exist;",
+											"    pm.collectionVariables.set(\"spycatId4\", jsonData.id);",
+											"    console.log(\"Captured spycatId 4:\", jsonData.id);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"breed\": \"Manx\",\n    \"experience_years\": 1,\n    \"name\": \"Max\",\n    \"salary\": 12000.00\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/spycats",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"spycats"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get spycats data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function() {",
+											"    pm.response.to.have.status(200)",
+											"})",
+											"",
+											"pm.test(\"Response time is under 300ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(300)",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type')",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\")",
+											"})",
+											"",
+											"pm.test(\"Salaries of spycats are positive\", function() {",
+											"    const jsonData = pm.response.json();",
+											"    jsonData.forEach(spycat => {",
+											"        pm.expect(spycat.salary).to.be.above(0);",
+											"    })",
+											"})"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/spycats",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"spycats"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Change spycat's salary",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const patchSchema = {",
+											"  type: \"object\",",
+											"  properties: {",
+											"    salary: { type: \"number\", minimum: 0 }",
+											"  },",
+											"  required: [\"salary\"], ",
+											"  additionalProperties: false",
+											"};",
+											"",
+											"function validateSchema(obj, schema) {",
+											"  const errors = [];",
+											"",
+											"  if (typeof obj !== \"object\" || obj === null) {",
+											"    errors.push(\"Request body should be an object\");",
+											"    return errors;",
+											"  }",
+											"",
+											"  schema.required.forEach(prop => {",
+											"    if (!(prop in obj)) errors.push(`Missing required property: ${prop}`);",
+											"  });",
+											"",
+											"  for (const prop in obj) {",
+											"    if (!(prop in schema.properties)) {",
+											"      errors.push(`Unexpected property: ${prop}`);",
+											"      continue;",
+											"    }",
+											"",
+											"    const def = schema.properties[prop];",
+											"    const value = obj[prop];",
+											"",
+											"    if (typeof value !== def.type) {",
+											"      errors.push(`${prop} should be a ${def.type}`);",
+											"      continue;",
+											"    }",
+											"",
+											"    if (def.minimum !== undefined && value < def.minimum) {",
+											"      errors.push(`${prop} should be >= ${def.minimum}`);",
+											"    }",
+											"  }",
+											"",
+											"  return errors;",
+											"}",
+											"",
+											"let body;",
+											"try {",
+											"  body = JSON.parse(pm.request.body.raw);",
+											"} catch (e) {",
+											"  pm.test(\"Request body is valid JSON\", () => {",
+											"    pm.expect.fail(\"Body is not valid JSON\");",
+											"  });",
+											"}",
+											"",
+											"const errors = validateSchema(body, patchSchema);",
+											"",
+											"pm.test(\"Validate Spycat PATCH body schema\", () => {",
+											"  if (errors.length) {",
+											"    pm.expect.fail(\"Schema validation errors: \" + errors.join(\"; \"));",
+											"  } else {",
+											"    pm.expect(true).to.be.true;",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function() {",
+											"    pm.response.to.have.status(200);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 300ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(300);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"salary\": 30000.00\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/spycats/{{spycatId4}}/salary",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"spycats",
+										"{{spycatId4}}",
+										"salary"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get spycats specific data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function() {",
+											"    pm.response.to.have.status(200);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 200ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(200);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})",
+											"",
+											"pm.test(\"Salary of the spycat is positive\", function() {",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.salary).to.be.above(0);",
+											"})",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/spycats/{{spycatId4}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"spycats",
+										"{{spycatId4}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete specific spycat",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function() {",
+											"    pm.response.to.have.status(200);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 200ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(200);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/spycats/{{spycatId4}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"spycats",
+										"{{spycatId4}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get spycats specific data Duplicate",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function() {",
+											"    pm.response.to.have.status(404);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 200ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(200);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})",
+											"",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"packages": {},
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/spycats/{{spycatId4}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"spycats",
+										"{{spycatId4}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete multiple spycats",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function() {",
+											"    pm.response.to.have.status(200);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 300ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(300);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const deleteRequestSchema = {",
+											"  type: \"object\",",
+											"  properties: {",
+											"    ids: {",
+											"      type: \"array\",",
+											"      items: { type: \"string\" },",
+											"      minItems: 1",
+											"    }",
+											"  },",
+											"  required: [\"ids\"],",
+											"  additionalProperties: false",
+											"};",
+											"",
+											"function validateSchema(obj, schema) {",
+											"  const errors = [];",
+											"",
+											"  if (typeof obj !== \"object\" || obj === null) {",
+											"    errors.push(\"Body should be an object\");",
+											"    return errors;",
+											"  }",
+											"",
+											"  schema.required.forEach((prop) => {",
+											"    if (!(prop in obj)) errors.push(`Missing required property: ${prop}`);",
+											"  });",
+											"",
+											"  for (const prop in schema.properties) {",
+											"    if (!(prop in obj)) continue;",
+											"",
+											"    const rule = schema.properties[prop];",
+											"    const value = obj[prop];",
+											"",
+											"    if (rule.type === \"array\") {",
+											"      if (!Array.isArray(value)) {",
+											"        errors.push(`${prop} should be an array`);",
+											"      } else {",
+											"        value.forEach((item, idx) => {",
+											"          if (typeof item !== rule.items.type) {",
+											"            errors.push(`${prop}[${idx}] should be a ${rule.items.type}`);",
+											"          }",
+											"        });",
+											"        if (rule.minItems && value.length < rule.minItems) {",
+											"          errors.push(`${prop} must have at least ${rule.minItems} item(s)`);",
+											"        }",
+											"      }",
+											"    } else if (typeof value !== rule.type) {",
+											"      errors.push(`${prop} should be a ${rule.type}`);",
+											"    }",
+											"  }",
+											"",
+											"  if (schema.additionalProperties === false) {",
+											"    Object.keys(obj).forEach((key) => {",
+											"      if (!(key in schema.properties)) {",
+											"        errors.push(`Unexpected property: ${key}`);",
+											"      }",
+											"    });",
+											"  }",
+											"",
+											"  return errors;",
+											"}",
+											"",
+											"let body;",
+											"try {",
+											"  body = JSON.parse(pm.request.body.raw);",
+											"} catch (e) {",
+											"  pm.test(\"Body is valid JSON\", () => {",
+											"    pm.expect.fail(\"Request body is not valid JSON\");",
+											"  });",
+											"}",
+											"",
+											"const errors = validateSchema(body, deleteRequestSchema);",
+											"",
+											"pm.test(\"Validate DELETE body schema\", () => {",
+											"  if (errors.length) {",
+											"    pm.expect.fail(\"Schema validation errors: \" + errors.join(\"; \"));",
+											"  } else {",
+											"    pm.expect(true).to.be.true;",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"ids\": [\"{{spycatId1}}\", \"{{spycatId2}}\", \"{{spycatId3}}\"]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/spycats",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"spycats"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add new spycat #5",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const spycatSchema = {",
+											"  type: \"object\",",
+											"  properties: {",
+											"    breed: { type: \"string\" },",
+											"    experience_years: { type: \"number\" },",
+											"    name: { type: \"string\" },",
+											"    salary: { type: \"number\", minimum: 0 }",
+											"  },",
+											"  required: [\"breed\", \"experience_years\", \"name\", \"salary\"],",
+											"  additionalProperties: false",
+											"};",
+											"",
+											"function validateSchema(obj, schema) {",
+											"  const errors = [];",
+											"",
+											"  if (typeof obj !== \"object\" || obj === null) {",
+											"    errors.push(\"Request body should be an object\");",
+											"    return errors;",
+											"  }",
+											"",
+											"  schema.required.forEach(prop => {",
+											"    if (!(prop in obj)) errors.push(`Missing required property: ${prop}`);",
+											"  });",
+											"",
+											"  for (const prop in schema.properties) {",
+											"    if (!(prop in obj)) continue;",
+											"",
+											"    const def = schema.properties[prop];",
+											"    const value = obj[prop];",
+											"",
+											"    if (typeof value !== def.type) {",
+											"      errors.push(`${prop} should be a ${def.type}`);",
+											"      continue;",
+											"    }",
+											"",
+											"    if (def.minimum !== undefined && value < def.minimum) {",
+											"      errors.push(`${prop} should be > ${def.minimum}`);",
+											"    }",
+											"  }",
+											"",
+											"  if (schema.additionalProperties === false) {",
+											"    Object.keys(obj).forEach(key => {",
+											"      if (!(key in schema.properties)) {",
+											"        errors.push(`Unexpected property: ${key}`);",
+											"      }",
+											"    });",
+											"  }",
+											"",
+											"  return errors;",
+											"}",
+											"",
+											"let body;",
+											"try {",
+											"  body = JSON.parse(pm.request.body.raw);",
+											"} catch (e) {",
+											"  pm.test(\"Request body is valid JSON\", () => {",
+											"    pm.expect.fail(\"Body is not valid JSON\");",
+											"  });",
+											"}",
+											"",
+											"const errors = validateSchema(body, spycatSchema);",
+											"",
+											"pm.test(\"Validate Spycat POST body schema\", () => {",
+											"  if (errors.length) {",
+											"    pm.expect.fail(\"Schema validation errors: \" + errors.join(\"; \"));",
+											"  } else {",
+											"    pm.expect(true).to.be.true;",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function() {",
+											"    pm.response.to.have.status(201);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 600ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(600);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})",
+											"",
+											"const jsonData = pm.response.json();",
+											"",
+											"pm.test(\"Spycat's salary is positive\", function() {",
+											"    pm.expect(jsonData.salary).to.be.above(0);",
+											"})",
+											"",
+											"pm.test(\"Spycat ID 1 returned\", function() {",
+											"    pm.expect(jsonData.id, \"Spycat ID 1 should be present\").to.exist;",
+											"    pm.collectionVariables.set(\"spycatId1\", jsonData.id);",
+											"    console.log(\"Captured spycatId 1:\", jsonData.id);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"breed\": \"American Curl\",\n    \"experience_years\": 4,\n    \"name\": \"Lonny\",\n    \"salary\": 40000.00\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/spycats",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"spycats"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add new spycat #6",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const spycatSchema = {",
+											"  type: \"object\",",
+											"  properties: {",
+											"    breed: { type: \"string\" },",
+											"    experience_years: { type: \"number\" },",
+											"    name: { type: \"string\" },",
+											"    salary: { type: \"number\", minimum: 0 }",
+											"  },",
+											"  required: [\"breed\", \"experience_years\", \"name\", \"salary\"],",
+											"  additionalProperties: false",
+											"};",
+											"",
+											"function validateSchema(obj, schema) {",
+											"  const errors = [];",
+											"",
+											"  if (typeof obj !== \"object\" || obj === null) {",
+											"    errors.push(\"Request body should be an object\");",
+											"    return errors;",
+											"  }",
+											"",
+											"  schema.required.forEach(prop => {",
+											"    if (!(prop in obj)) errors.push(`Missing required property: ${prop}`);",
+											"  });",
+											"",
+											"  for (const prop in schema.properties) {",
+											"    if (!(prop in obj)) continue;",
+											"",
+											"    const def = schema.properties[prop];",
+											"    const value = obj[prop];",
+											"",
+											"    if (typeof value !== def.type) {",
+											"      errors.push(`${prop} should be a ${def.type}`);",
+											"      continue;",
+											"    }",
+											"",
+											"    if (def.minimum !== undefined && value < def.minimum) {",
+											"      errors.push(`${prop} should be > ${def.minimum}`);",
+											"    }",
+											"  }",
+											"",
+											"  if (schema.additionalProperties === false) {",
+											"    Object.keys(obj).forEach(key => {",
+											"      if (!(key in schema.properties)) {",
+											"        errors.push(`Unexpected property: ${key}`);",
+											"      }",
+											"    });",
+											"  }",
+											"",
+											"  return errors;",
+											"}",
+											"",
+											"let body;",
+											"try {",
+											"  body = JSON.parse(pm.request.body.raw);",
+											"} catch (e) {",
+											"  pm.test(\"Request body is valid JSON\", () => {",
+											"    pm.expect.fail(\"Body is not valid JSON\");",
+											"  });",
+											"}",
+											"",
+											"const errors = validateSchema(body, spycatSchema);",
+											"",
+											"pm.test(\"Validate Spycat POST body schema\", () => {",
+											"  if (errors.length) {",
+											"    pm.expect.fail(\"Schema validation errors: \" + errors.join(\"; \"));",
+											"  } else {",
+											"    pm.expect(true).to.be.true;",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function() {",
+											"    pm.response.to.have.status(201);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 600ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(600);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})",
+											"",
+											"const jsonData = pm.response.json();",
+											"",
+											"pm.test(\"Spycat's salary is positive\", function() {",
+											"    pm.expect(jsonData.salary).to.be.above(0);",
+											"})",
+											"",
+											"pm.test(\"Spycat ID 2 returned\", function() {",
+											"    pm.expect(jsonData.id, \"Spycat ID 2 should be present\").to.exist;",
+											"    pm.collectionVariables.set(\"spycatId2\", jsonData.id);",
+											"    console.log(\"Captured spycatId 2:\", jsonData.id);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"breed\": \"Sphynx\",\n    \"experience_years\": 3,\n    \"name\": \"Melo\",\n    \"salary\": 26700.00\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/spycats",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"spycats"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add new spycat #7",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const spycatSchema = {",
+											"  type: \"object\",",
+											"  properties: {",
+											"    breed: { type: \"string\" },",
+											"    experience_years: { type: \"number\" },",
+											"    name: { type: \"string\" },",
+											"    salary: { type: \"number\", minimum: 0 }",
+											"  },",
+											"  required: [\"breed\", \"experience_years\", \"name\", \"salary\"],",
+											"  additionalProperties: false",
+											"};",
+											"",
+											"function validateSchema(obj, schema) {",
+											"  const errors = [];",
+											"",
+											"  if (typeof obj !== \"object\" || obj === null) {",
+											"    errors.push(\"Request body should be an object\");",
+											"    return errors;",
+											"  }",
+											"",
+											"  schema.required.forEach(prop => {",
+											"    if (!(prop in obj)) errors.push(`Missing required property: ${prop}`);",
+											"  });",
+											"",
+											"  for (const prop in schema.properties) {",
+											"    if (!(prop in obj)) continue;",
+											"",
+											"    const def = schema.properties[prop];",
+											"    const value = obj[prop];",
+											"",
+											"    if (typeof value !== def.type) {",
+											"      errors.push(`${prop} should be a ${def.type}`);",
+											"      continue;",
+											"    }",
+											"",
+											"    if (def.minimum !== undefined && value < def.minimum) {",
+											"      errors.push(`${prop} should be > ${def.minimum}`);",
+											"    }",
+											"  }",
+											"",
+											"  if (schema.additionalProperties === false) {",
+											"    Object.keys(obj).forEach(key => {",
+											"      if (!(key in schema.properties)) {",
+											"        errors.push(`Unexpected property: ${key}`);",
+											"      }",
+											"    });",
+											"  }",
+											"",
+											"  return errors;",
+											"}",
+											"",
+											"let body;",
+											"try {",
+											"  body = JSON.parse(pm.request.body.raw);",
+											"} catch (e) {",
+											"  pm.test(\"Request body is valid JSON\", () => {",
+											"    pm.expect.fail(\"Body is not valid JSON\");",
+											"  });",
+											"}",
+											"",
+											"const errors = validateSchema(body, spycatSchema);",
+											"",
+											"pm.test(\"Validate Spycat POST body schema\", () => {",
+											"  if (errors.length) {",
+											"    pm.expect.fail(\"Schema validation errors: \" + errors.join(\"; \"));",
+											"  } else {",
+											"    pm.expect(true).to.be.true;",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function() {",
+											"    pm.response.to.have.status(201);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 600ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(600);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})",
+											"",
+											"const jsonData = pm.response.json();",
+											"",
+											"pm.test(\"Spycat's salary is positive\", function() {",
+											"    pm.expect(jsonData.salary).to.be.above(0);",
+											"})",
+											"",
+											"pm.test(\"Spycat ID 3 returned\", function() {",
+											"    pm.expect(jsonData.id, \"Spycat ID 3 should be present\").to.exist;",
+											"    pm.collectionVariables.set(\"spycatId3\", jsonData.id);",
+											"    console.log(\"Captured spycatId 3:\", jsonData.id);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"breed\": \"Birman\",\n    \"experience_years\": 8,\n    \"name\": \"Jonathan\",\n    \"salary\": 80000.00\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/spycats",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"spycats"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add new spycat #8",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const spycatSchema = {",
+											"  type: \"object\",",
+											"  properties: {",
+											"    breed: { type: \"string\" },",
+											"    experience_years: { type: \"number\" },",
+											"    name: { type: \"string\" },",
+											"    salary: { type: \"number\", minimum: 0 }",
+											"  },",
+											"  required: [\"breed\", \"experience_years\", \"name\", \"salary\"],",
+											"  additionalProperties: false",
+											"};",
+											"",
+											"function validateSchema(obj, schema) {",
+											"  const errors = [];",
+											"",
+											"  if (typeof obj !== \"object\" || obj === null) {",
+											"    errors.push(\"Request body should be an object\");",
+											"    return errors;",
+											"  }",
+											"",
+											"  schema.required.forEach(prop => {",
+											"    if (!(prop in obj)) errors.push(`Missing required property: ${prop}`);",
+											"  });",
+											"",
+											"  for (const prop in schema.properties) {",
+											"    if (!(prop in obj)) continue;",
+											"",
+											"    const def = schema.properties[prop];",
+											"    const value = obj[prop];",
+											"",
+											"    if (typeof value !== def.type) {",
+											"      errors.push(`${prop} should be a ${def.type}`);",
+											"      continue;",
+											"    }",
+											"",
+											"    if (def.minimum !== undefined && value < def.minimum) {",
+											"      errors.push(`${prop} should be > ${def.minimum}`);",
+											"    }",
+											"  }",
+											"",
+											"  if (schema.additionalProperties === false) {",
+											"    Object.keys(obj).forEach(key => {",
+											"      if (!(key in schema.properties)) {",
+											"        errors.push(`Unexpected property: ${key}`);",
+											"      }",
+											"    });",
+											"  }",
+											"",
+											"  return errors;",
+											"}",
+											"",
+											"let body;",
+											"try {",
+											"  body = JSON.parse(pm.request.body.raw);",
+											"} catch (e) {",
+											"  pm.test(\"Request body is valid JSON\", () => {",
+											"    pm.expect.fail(\"Body is not valid JSON\");",
+											"  });",
+											"}",
+											"",
+											"const errors = validateSchema(body, spycatSchema);",
+											"",
+											"pm.test(\"Validate Spycat POST body schema\", () => {",
+											"  if (errors.length) {",
+											"    pm.expect.fail(\"Schema validation errors: \" + errors.join(\"; \"));",
+											"  } else {",
+											"    pm.expect(true).to.be.true;",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function() {",
+											"    pm.response.to.have.status(201);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 600ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(600);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})",
+											"",
+											"const jsonData = pm.response.json();",
+											"",
+											"pm.test(\"Spycat's salary is positive\", function() {",
+											"    pm.expect(jsonData.salary).to.be.above(0);",
+											"})",
+											"",
+											"pm.test(\"Spycat ID 4 returned\", function() {",
+											"    pm.expect(jsonData.id, \"Spycat ID 4 should be present\").to.exist;",
+											"    pm.collectionVariables.set(\"spycatId4\", jsonData.id);",
+											"    console.log(\"Captured spycatId 4:\", jsonData.id);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"breed\": \"Manx\",\n    \"experience_years\": 1,\n    \"name\": \"Max\",\n    \"salary\": 12000.00\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/spycats",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"spycats"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Missions Operations",
+					"item": [
+						{
+							"name": "Add new mission #1",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const postSchema = {",
+											"  type: \"object\",",
+											"  properties: {",
+											"    complete_state: { type: \"string\" },",
+											"    targets: {",
+											"      type: \"array\",",
+											"      items: {",
+											"        type: \"object\",",
+											"        properties: {",
+											"          complete_state: { type: \"string\" },",
+											"          country: { type: \"string\" },",
+											"          name: { type: \"string\" },",
+											"          notes: { type: \"string\" }",
+											"        },",
+											"        required: [\"complete_state\", \"country\", \"name\", \"notes\"],",
+											"        additionalProperties: false",
+											"      }",
+											"    }",
+											"  },",
+											"  required: [\"complete_state\", \"targets\"],",
+											"  additionalProperties: false",
+											"};",
+											"",
+											"function validateSchema(obj, schema) {",
+											"  const errors = [];",
+											"",
+											"  if (typeof obj !== \"object\" || obj === null) {",
+											"    errors.push(\"Request body should be an object\");",
+											"    return errors;",
+											"  }",
+											"",
+											"  if (schema.required) {",
+											"    schema.required.forEach(prop => {",
+											"      if (!(prop in obj)) errors.push(`Missing required property: ${prop}`);",
+											"    });",
+											"  }",
+											"",
+											"  for (const prop in obj) {",
+											"    if (!schema.properties[prop]) {",
+											"      if (schema.additionalProperties === false) errors.push(`Unexpected property: ${prop}`);",
+											"      continue;",
+											"    }",
+											"",
+											"    const def = schema.properties[prop];",
+											"    const value = obj[prop];",
+											"",
+											"    if (def.type === \"array\") {",
+											"      if (!Array.isArray(value)) {",
+											"        errors.push(`${prop} should be an array`);",
+											"        continue;",
+											"      }",
+											"      value.forEach((item, idx) => {",
+											"        if (def.items.type === \"object\") {",
+											"          const nestedErrors = validateSchema(item, def.items);",
+											"          nestedErrors.forEach(err => errors.push(`${prop}[${idx}]: ${err}`));",
+											"        } else {",
+											"          if (typeof item !== def.items.type) {",
+											"            errors.push(`${prop}[${idx}] should be a ${def.items.type}`);",
+											"          }",
+											"        }",
+											"      });",
+											"    } else {",
+											"      if (typeof value !== def.type) {",
+											"        errors.push(`${prop} should be a ${def.type}`);",
+											"      }",
+											"    }",
+											"  }",
+											"",
+											"  return errors;",
+											"}",
+											"",
+											"let body;",
+											"try {",
+											"  body = JSON.parse(pm.request.body.raw);",
+											"} catch (e) {",
+											"  pm.test(\"Request body is valid JSON\", () => {",
+											"    pm.expect.fail(\"Body is not valid JSON\");",
+											"  });",
+											"}",
+											"",
+											"const errors = validateSchema(body, postSchema);",
+											"",
+											"pm.test(\"Validate POST request body schema\", () => {",
+											"  if (errors.length) {",
+											"    pm.expect.fail(\"Schema validation errors: \" + errors.join(\"; \"));",
+											"  } else {",
+											"    pm.expect(true).to.be.true;",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function() {",
+											"    pm.response.to.have.status(201);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 400ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(400);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})",
+											"",
+											"    const jsonData = pm.response.json();",
+											"",
+											"    pm.test(\"Mission's amount of targets > 0 and < 3\", function() {",
+											"        pm.expect(Array.isArray(jsonData.targets), \"targets should be an array\").to.be.true;",
+											"        pm.expect(jsonData.targets.length, \"number of targets\").to.be.above(0);",
+											"        pm.expect(jsonData.targets.length, \"number of targets\").to.be.below(3);",
+											"    })",
+											"",
+											"pm.test(\"Mission ID 1 returned\", function() {",
+											"    pm.expect(jsonData.id, \"Mission ID 1 should be present\").to.exist;",
+											"    pm.collectionVariables.set(\"missionId1\", jsonData.id);",
+											"    console.log(\"Captured missionId 1:\", jsonData.id);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"complete_state\": \"in progress\",\n  \"targets\": [\n    {\n      \"complete_state\": \"in progress\",\n      \"country\": \"Switzerland\",\n      \"name\": \"Swiss operation #1\",\n      \"notes\": \"First operation to complete in Switzerland.\"\n    },\n    {\n      \"complete_state\": \"in progress\",\n      \"country\": \"Switzerland\",\n      \"name\": \"Swiss operation #2\",\n      \"notes\": \"Second operation to complete in Switzerland.\"\n    }\n  ]\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/missions",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"missions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get missions data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function() {",
+											"    pm.response.to.have.status(200)",
+											"})",
+											"",
+											"pm.test(\"Response time is under 300ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(300)",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type')",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\")",
+											"})",
+											"",
+											"pm.test(\"Missions targets > 0 and < 4\", function() {",
+											"    const jsonData = pm.response.json();",
+											"    jsonData.forEach(mission => {",
+											"        pm.expect(Array.isArray(mission.targets), \"targets should be an array\").to.be.true;",
+											"        pm.expect(mission.targets.length, \"number of targets\").to.be.above(0);",
+											"        pm.expect(mission.targets.length, \"number of targets\").to.be.below(4);",
+											"    })",
+											"})"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/missions",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"missions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add new target to existing mission #1",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const postRequestSchema = {",
+											"  type: \"object\",",
+											"  properties: {",
+											"    complete_state: { type: \"string\" },",
+											"    country: { type: \"string\" },",
+											"    name: { type: \"string\" },",
+											"    notes: { type: \"string\" }",
+											"  },",
+											"  required: [\"complete_state\", \"country\", \"name\", \"notes\"],",
+											"  additionalProperties: false",
+											"};",
+											"",
+											"function validateSchema(obj, schema) {",
+											"  const errors = [];",
+											"",
+											"  if (typeof obj !== \"object\" || obj === null) {",
+											"    errors.push(\"Request body should be an object\");",
+											"    return errors;",
+											"  }",
+											"",
+											"  schema.required.forEach((prop) => {",
+											"    if (!(prop in obj)) errors.push(`Missing required property: ${prop}`);",
+											"  });",
+											"",
+											"  for (const prop in schema.properties) {",
+											"    if (!(prop in obj)) continue;",
+											"    const expectedType = schema.properties[prop].type;",
+											"    if (typeof obj[prop] !== expectedType) {",
+											"      errors.push(`${prop} should be a ${expectedType}`);",
+											"    }",
+											"  }",
+											"",
+											"  if (schema.additionalProperties === false) {",
+											"    Object.keys(obj).forEach((key) => {",
+											"      if (!(key in schema.properties)) {",
+											"        errors.push(`Unexpected property: ${key}`);",
+											"      }",
+											"    });",
+											"  }",
+											"",
+											"  return errors;",
+											"}",
+											"",
+											"let requestBody;",
+											"try {",
+											"  requestBody = JSON.parse(pm.request.body.raw);",
+											"} catch (e) {",
+											"  pm.test(\"Request body is valid JSON\", function () {",
+											"    pm.expect.fail(\"Request body is not valid JSON\");",
+											"  });",
+											"}",
+											"",
+											"const errors = validateSchema(requestBody, postRequestSchema);",
+											"",
+											"pm.test(\"Validate POST request body schema\", function () {",
+											"  if (errors.length) {",
+											"    pm.expect.fail(\"Schema validation errors: \" + errors.join(\"; \"));",
+											"  } else {",
+											"    pm.expect(true).to.be.true;",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function() {",
+											"    pm.response.to.have.status(201);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 300ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(300);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})",
+											"",
+											"pm.test(\"Target ID returned\", function() {",
+											"    const jsonData = pm.response.json();",
+											"",
+											"    pm.expect(jsonData.targets, \"targets array should exist\").to.be.an(\"array\").that.is.not.empty;",
+											"",
+											"    const lastAddedTarget = jsonData.targets[jsonData.targets.length - 1];",
+											"",
+											"    pm.expect(lastAddedTarget.id, \"Target ID should be present\").to.exist;",
+											"",
+											"    pm.collectionVariables.set(\"targetId\", lastAddedTarget.id);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"complete_state\": \"in progress\",\n  \"country\": \"Switzerland\",\n  \"name\": \"Swiss operation #3\",\n  \"notes\": \"Third Swiss operation to complete.\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/missions/{{missionId1}}/targets",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"missions",
+										"{{missionId1}}",
+										"targets"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Modify newly added target",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const patchRequestSchema = {",
+											"    type: \"object\",",
+											"    properties: {",
+											"        complete_state: { type: \"string\" },",
+											"        notes: { type: \"string\" }",
+											"    },",
+											"    additionalProperties: false",
+											"};",
+											"",
+											"function validateSchema(obj, schema) {",
+											"    const errors = [];",
+											"",
+											"    if (typeof obj !== 'object' || obj === null) {",
+											"        errors.push(\"Request body should be an object\");",
+											"        return errors;",
+											"    }",
+											"",
+											"    for (const prop in obj) {",
+											"        if (!(prop in schema.properties)) {",
+											"            errors.push(`Unexpected property: ${prop}`);",
+											"            continue;",
+											"        }",
+											"",
+											"        const expectedType = schema.properties[prop].type;",
+											"        if (typeof obj[prop] !== expectedType) {",
+											"            errors.push(`${prop} should be a ${expectedType}`);",
+											"        }",
+											"    }",
+											"",
+											"    return errors;",
+											"}",
+											"",
+											"let requestBody;",
+											"try {",
+											"    requestBody = JSON.parse(pm.request.body.raw);",
+											"} catch (e) {",
+											"    pm.test(\"Request body is valid JSON\", () => {",
+											"        pm.expect.fail(\"Request body is not valid JSON\");",
+											"    });",
+											"}",
+											"",
+											"const errors = validateSchema(requestBody, patchRequestSchema);",
+											"",
+											"pm.test(\"Validate PATCH request body schema\", () => {",
+											"    if (errors.length) {",
+											"        pm.expect.fail(\"Schema validation errors: \" + errors.join(\"; \"));",
+											"    } else {",
+											"        pm.expect(true).to.be.true;",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function() {",
+											"    pm.response.to.have.status(200);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 300ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(300);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"notes\": \"Really important Swiss mission.\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/missions/{{missionId1}}/targets/{{targetId}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"missions",
+										"{{missionId1}}",
+										"targets",
+										"{{targetId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete newly created target",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function() {",
+											"    pm.response.to.have.status(200);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 200ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(200);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/missions/{{missionId1}}/targets/{{targetId}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"missions",
+										"{{missionId1}}",
+										"targets",
+										"{{targetId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Assign a spy cat to a mission #1",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const postMissionSchema = {",
+											"  type: \"object\",",
+											"  properties: {",
+											"    spycat_id: { type: \"string\" }",
+											"  },",
+											"  required: [\"spycat_id\"],",
+											"  additionalProperties: false",
+											"};",
+											"",
+											"function validateSchema(obj, schema) {",
+											"  const errors = [];",
+											"",
+											"  if (typeof obj !== \"object\" || obj === null) {",
+											"    errors.push(\"Request body should be an object\");",
+											"    return errors;",
+											"  }",
+											"",
+											"  schema.required.forEach((prop) => {",
+											"    if (!(prop in obj)) errors.push(`Missing required property: ${prop}`);",
+											"  });",
+											"",
+											"  for (const prop in schema.properties) {",
+											"    if (!(prop in obj)) continue;",
+											"    const expectedType = schema.properties[prop].type;",
+											"    if (typeof obj[prop] !== expectedType) {",
+											"      errors.push(`${prop} should be a ${expectedType}`);",
+											"    }",
+											"  }",
+											"",
+											"  if (schema.additionalProperties === false) {",
+											"    Object.keys(obj).forEach((key) => {",
+											"      if (!(key in schema.properties)) {",
+											"        errors.push(`Unexpected property: ${key}`);",
+											"      }",
+											"    });",
+											"  }",
+											"",
+											"  return errors;",
+											"}",
+											"",
+											"let requestBody;",
+											"try {",
+											"  requestBody = JSON.parse(pm.request.body.raw);",
+											"} catch (e) {",
+											"  pm.test(\"Request body is valid JSON\", function () {",
+											"    pm.expect.fail(\"Request body is not valid JSON\");",
+											"  });",
+											"}",
+											"",
+											"const errors = validateSchema(requestBody, postMissionSchema);",
+											"",
+											"pm.test(\"Validate POST body schema (spycat_id)\", function () {",
+											"  if (errors.length) {",
+											"    pm.expect.fail(\"Schema validation errors: \" + errors.join(\"; \"));",
+											"  } else {",
+											"    pm.expect(true).to.be.true;",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function() {",
+											"    pm.response.to.have.status(201);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 300ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(300);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"spycat_id\": \"{{spycatId1}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/missions/{{missionId1}}/spycats",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"missions",
+										"{{missionId1}}",
+										"spycats"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Modify mission #1 completion state",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const patchRequestSchema = {",
+											"    type: \"object\",",
+											"    properties: {",
+											"        complete_state: { type: \"string\" }",
+											"    },",
+											"    required: [\"complete_state\"],",
+											"    additionalProperties: false",
+											"};",
+											"",
+											"function validateSchema(obj, schema) {",
+											"    const errors = [];",
+											"",
+											"    if (typeof obj !== 'object' || obj === null) {",
+											"        errors.push(\"Request body should be an object\");",
+											"        return errors;",
+											"    }",
+											"",
+											"    // Check required fields",
+											"    schema.required.forEach(prop => {",
+											"        if (!(prop in obj)) errors.push(`Missing required property: ${prop}`);",
+											"    });",
+											"",
+											"    for (const prop in obj) {",
+											"        if (!(prop in schema.properties)) {",
+											"            errors.push(`Unexpected property: ${prop}`);",
+											"            continue;",
+											"        }",
+											"        const expectedType = schema.properties[prop].type;",
+											"        if (typeof obj[prop] !== expectedType) {",
+											"            errors.push(`${prop} should be a ${expectedType}`);",
+											"        }",
+											"    }",
+											"",
+											"    return errors;",
+											"}",
+											"",
+											"let requestBody;",
+											"try {",
+											"    requestBody = JSON.parse(pm.request.body.raw);",
+											"} catch (e) {",
+											"    pm.test(\"Request body is valid JSON\", () => {",
+											"        pm.expect.fail(\"Request body is not valid JSON\");",
+											"    });",
+											"}",
+											"",
+											"const errors = validateSchema(requestBody, patchRequestSchema);",
+											"",
+											"pm.test(\"Validate PATCH request body schema\", () => {",
+											"    if (errors.length) {",
+											"        pm.expect.fail(\"Schema validation errors: \" + errors.join(\"; \"));",
+											"    } else {",
+											"        pm.expect(true).to.be.true;",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function() {",
+											"    pm.response.to.have.status(200);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 300ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(300);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"complete_state\": \"completed\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/missions/{{missionId1}}/completion-state",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"missions",
+										"{{missionId1}}",
+										"completion-state"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get mission #1 data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function() {",
+											"    pm.response.to.have.status(200)",
+											"})",
+											"",
+											"pm.test(\"Response time is under 200ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(200)",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type')",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\")",
+											"})",
+											"",
+											"pm.test(\"Salary of the spycat is positive\", function() {",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.targets.length, \"number of targets\").to.be.above(0);",
+											"    pm.expect(jsonData.targets.length, \"number of targets\").to.be.below(4);",
+											"})"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/missions/{{missionId1}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"missions",
+										"{{missionId1}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add new mission #2",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const postSchema = {",
+											"  type: \"object\",",
+											"  properties: {",
+											"    complete_state: { type: \"string\" },",
+											"    targets: {",
+											"      type: \"array\",",
+											"      items: {",
+											"        type: \"object\",",
+											"        properties: {",
+											"          complete_state: { type: \"string\" },",
+											"          country: { type: \"string\" },",
+											"          name: { type: \"string\" },",
+											"          notes: { type: \"string\" }",
+											"        },",
+											"        required: [\"complete_state\", \"country\", \"name\", \"notes\"],",
+											"        additionalProperties: false",
+											"      }",
+											"    }",
+											"  },",
+											"  required: [\"complete_state\", \"targets\"],",
+											"  additionalProperties: false",
+											"};",
+											"",
+											"function validateSchema(obj, schema) {",
+											"  const errors = [];",
+											"",
+											"  if (typeof obj !== \"object\" || obj === null) {",
+											"    errors.push(\"Request body should be an object\");",
+											"    return errors;",
+											"  }",
+											"",
+											"  if (schema.required) {",
+											"    schema.required.forEach(prop => {",
+											"      if (!(prop in obj)) errors.push(`Missing required property: ${prop}`);",
+											"    });",
+											"  }",
+											"",
+											"  for (const prop in obj) {",
+											"    if (!schema.properties[prop]) {",
+											"      if (schema.additionalProperties === false) errors.push(`Unexpected property: ${prop}`);",
+											"      continue;",
+											"    }",
+											"",
+											"    const def = schema.properties[prop];",
+											"    const value = obj[prop];",
+											"",
+											"    if (def.type === \"array\") {",
+											"      if (!Array.isArray(value)) {",
+											"        errors.push(`${prop} should be an array`);",
+											"        continue;",
+											"      }",
+											"      value.forEach((item, idx) => {",
+											"        if (def.items.type === \"object\") {",
+											"          const nestedErrors = validateSchema(item, def.items);",
+											"          nestedErrors.forEach(err => errors.push(`${prop}[${idx}]: ${err}`));",
+											"        } else {",
+											"          if (typeof item !== def.items.type) {",
+											"            errors.push(`${prop}[${idx}] should be a ${def.items.type}`);",
+											"          }",
+											"        }",
+											"      });",
+											"    } else {",
+											"      if (typeof value !== def.type) {",
+											"        errors.push(`${prop} should be a ${def.type}`);",
+											"      }",
+											"    }",
+											"  }",
+											"",
+											"  return errors;",
+											"}",
+											"",
+											"let body;",
+											"try {",
+											"  body = JSON.parse(pm.request.body.raw);",
+											"} catch (e) {",
+											"  pm.test(\"Request body is valid JSON\", () => {",
+											"    pm.expect.fail(\"Body is not valid JSON\");",
+											"  });",
+											"}",
+											"",
+											"const errors = validateSchema(body, postSchema);",
+											"",
+											"pm.test(\"Validate POST request body schema\", () => {",
+											"  if (errors.length) {",
+											"    pm.expect.fail(\"Schema validation errors: \" + errors.join(\"; \"));",
+											"  } else {",
+											"    pm.expect(true).to.be.true;",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function() {",
+											"    pm.response.to.have.status(201);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 400ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(400);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})",
+											"",
+											"    const jsonData = pm.response.json();",
+											"",
+											"    pm.test(\"Mission's amount of targets > 0 and < 3\", function() {",
+											"        pm.expect(Array.isArray(jsonData.targets), \"targets should be an array\").to.be.true;",
+											"        pm.expect(jsonData.targets.length, \"number of targets\").to.be.above(0);",
+											"        pm.expect(jsonData.targets.length, \"number of targets\").to.be.below(3);",
+											"    })",
+											"",
+											"pm.test(\"Mission ID 2 returned\", function() {",
+											"    pm.expect(jsonData.id, \"Mission ID 2 should be present\").to.exist;",
+											"    pm.collectionVariables.set(\"missionId2\", jsonData.id);",
+											"    console.log(\"Captured missionId 2:\", jsonData.id);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"complete_state\": \"in progress\",\n  \"targets\": [\n    {\n      \"complete_state\": \"in progress\",\n      \"country\": \"Belgium\",\n      \"name\": \"Belgium operation #1\",\n      \"notes\": \"First operation to complete in Belgium.\"\n    }\n  ]\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/missions",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"missions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete mission #2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function() {",
+											"    pm.response.to.have.status(200);",
+											"})",
+											"",
+											"pm.test(\"Response time is under 200ms\", function() {",
+											"    pm.expect(pm.response.responseTime).to.be.below(200);",
+											"})",
+											"",
+											"pm.test(\"Content-Type is application/json\", function() {",
+											"    pm.response.to.have.header('Content-Type');",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+											"})",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/missions/{{missionId2}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"missions",
+										"{{missionId2}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": ""
+		},
+		{
+			"key": "spycatId1",
+			"value": ""
+		},
+		{
+			"key": "spycatId2",
+			"value": ""
+		},
+		{
+			"key": "spycatId3",
+			"value": ""
+		},
+		{
+			"key": "spycatId4",
+			"value": ""
+		},
+		{
+			"key": "missionId1",
+			"value": ""
+		},
+		{
+			"key": "missionId2",
+			"value": ""
+		},
+		{
+			"key": "targetId",
+			"value": ""
+		}
+	]
+}

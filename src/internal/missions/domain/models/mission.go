@@ -31,3 +31,9 @@ type Target struct {
 	CreatedAt     time.Time
 	UpdatedAt     time.Time `json:"updated_at"`
 }
+
+type MissionDetails struct {
+	Mission
+	SpyCatName  *string
+	TargetNames []string
+}

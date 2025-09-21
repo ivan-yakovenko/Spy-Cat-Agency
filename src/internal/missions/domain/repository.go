@@ -2,6 +2,7 @@ package domain
 
 import (
 	"Spy-Cat-Agency/src/internal/missions/domain/models"
+	models2 "Spy-Cat-Agency/src/internal/spycats/domain/models"
 	"context"
 
 	"github.com/google/uuid"
@@ -9,10 +10,10 @@ import (
 )
 
 type MissionReader interface {
-	FindAllMissions(ctx context.Context) ([]models.Mission, error)
-	FindMissionById(ctx context.Context, id uuid.UUID) (*models.Mission, error)
-	FindMissionTargetsById(ctx context.Context, missionId uuid.UUID) ([]models.Target, error)
+	FindAllMissions(ctx context.Context) (map[uuid.UUID]*models.MissionDetails, error)
+	FindMissionById(ctx context.Context, id uuid.UUID) (*models.Mission, []models.Target, *models2.SpyCat, error)
 	FindTargetById(ctx context.Context, targetId uuid.UUID) (*models.Target, error)
+	FindMissionTargetsById(ctx context.Context, missionId uuid.UUID) ([]models.Target, error)
 }
 
 type MissionWriter interface {

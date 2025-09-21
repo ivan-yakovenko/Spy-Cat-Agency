@@ -4,9 +4,9 @@ import (
 	"Spy-Cat-Agency/src/internal/missions/dtos"
 	"Spy-Cat-Agency/src/internal/missions/mappers"
 	"Spy-Cat-Agency/src/internal/shared/utils/error_handler"
-	"Spy-Cat-Agency/src/internal/spycats/domain/models"
 	"context"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,56 +18,38 @@ func (s *missionServiceImpl) AssignCatToMission(ctx context.Context, spyCatReq d
 	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{})
 
 	if err != nil {
-		return dtos.MissionSingleResponseDto{}, error_handler.ErrorHandler(err, err.Error())
+		return dtos.MissionSingleResponseDto{}, error_handler.NewCustomError(http.StatusInternalServerError, "Error starting transaction to assign cat to a mission", err)
 	}
 
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil {
-			log.Printf("Error rolling back transaction: %v", err)
+			log.Printf("Error rolling back assigning cat to a mission transaction: %v", err)
 		}
 	}()
 
-	mission, err := s.reader.FindMissionById(ctx, id)
+	mission, _, _, err := s.reader.FindMissionById(ctx, id)
 
 	if err != nil {
-		return dtos.MissionSingleResponseDto{}, err
-	}
-
-	var spyCat *models.SpyCat
-
-	if mission.SpyCatId != nil {
-		spyCat, err = s.spyCatReader.FindById(ctx, *mission.SpyCatId)
-		if err != nil {
-			return dtos.MissionSingleResponseDto{}, err
-		}
-
-	} else {
-		spyCat = &models.SpyCat{}
+		return dtos.MissionSingleResponseDto{}, error_handler.NewCustomError(http.StatusInternalServerError, "Error getting single mission related data from the database", err)
 	}
 
 	mission.SpyCatId = &spyCatReq.SpyCatId
 	mission.UpdatedAt = time.Now()
 
-	updatedMission, err := s.writer.AssignCatToMission(ctx, tx, mission)
-
-	if err != nil {
-		return dtos.MissionSingleResponseDto{}, err
+	if _, err = s.writer.AssignCatToMission(ctx, tx, mission); err != nil {
+		return dtos.MissionSingleResponseDto{}, error_handler.NewCustomError(http.StatusInternalServerError, "Error updating mission with new spy cat in database", err)
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return dtos.MissionSingleResponseDto{}, err
+		return dtos.MissionSingleResponseDto{}, error_handler.NewCustomError(http.StatusInternalServerError, "Error commiting transaction to assign cat to a mission", err)
 	}
 
-	targets, err := s.reader.FindMissionTargetsById(ctx, mission.Id)
+	updMission, updTargets, newSpyCat, err := s.reader.FindMissionById(ctx, id)
+
 	if err != nil {
-		return dtos.MissionSingleResponseDto{}, err
+		return dtos.MissionSingleResponseDto{}, error_handler.NewCustomError(http.StatusInternalServerError, err.Error(), err)
 	}
 
-	spyCat, err = s.spyCatReader.FindById(ctx, *mission.SpyCatId)
-	if err != nil {
-		return dtos.MissionSingleResponseDto{}, err
-	}
-
-	return mappers.MissionSingleToDto(updatedMission, spyCat, targets), nil
+	return mappers.MissionSingleToDto(updMission, newSpyCat, updTargets), nil
 
 }

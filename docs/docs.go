@@ -197,7 +197,9 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
+            }
+        },
+        "/missions/{missionId}/completion-state": {
             "patch": {
                 "description": "Updates the completion state of a mission by its Id.",
                 "consumes": [
@@ -733,7 +735,9 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
+            }
+        },
+        "/spycats/{spycatId}/salary": {
             "patch": {
                 "description": "Updates the salary of a spy cat by its I.",
                 "consumes": [
@@ -799,6 +803,9 @@ const docTemplate = `{
     "definitions": {
         "dtos.AssignCatRequest": {
             "type": "object",
+            "required": [
+                "spycat_id"
+            ],
             "properties": {
                 "spycat_id": {
                     "type": "string"
@@ -807,6 +814,9 @@ const docTemplate = `{
         },
         "dtos.CompletionStateRequest": {
             "type": "object",
+            "required": [
+                "complete_state"
+            ],
             "properties": {
                 "complete_state": {
                     "type": "string"
@@ -815,6 +825,9 @@ const docTemplate = `{
         },
         "dtos.DeletedIds": {
             "type": "object",
+            "required": [
+                "ids"
+            ],
             "properties": {
                 "ids": {
                     "type": "array",
@@ -849,6 +862,10 @@ const docTemplate = `{
         },
         "dtos.MissionCreateRequest": {
             "type": "object",
+            "required": [
+                "complete_state",
+                "targets"
+            ],
             "properties": {
                 "complete_state": {
                     "type": "string"
@@ -906,6 +923,12 @@ const docTemplate = `{
         },
         "dtos.MissionTargetRequest": {
             "type": "object",
+            "required": [
+                "complete_state",
+                "country",
+                "name",
+                "notes"
+            ],
             "properties": {
                 "complete_state": {
                     "type": "string"
@@ -923,6 +946,9 @@ const docTemplate = `{
         },
         "dtos.SalaryRequest": {
             "type": "object",
+            "required": [
+                "salary"
+            ],
             "properties": {
                 "salary": {
                     "type": "number"
@@ -951,6 +977,12 @@ const docTemplate = `{
         },
         "dtos.SpyCatCreateRequest": {
             "type": "object",
+            "required": [
+                "breed",
+                "experience_years",
+                "name",
+                "salary"
+            ],
             "properties": {
                 "breed": {
                     "type": "string"

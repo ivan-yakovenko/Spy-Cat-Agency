@@ -34,15 +34,15 @@ type MissionAllResponseDto struct {
 }
 
 type MissionTargetRequest struct {
-	Name          string `json:"name"`
-	Country       string `json:"country"`
-	Notes         string `json:"notes"`
-	CompleteState string `json:"complete_state"`
+	Name          string `json:"name" binding:"required"`
+	Country       string `json:"country" binding:"required"`
+	Notes         string `json:"notes" binding:"required"`
+	CompleteState string `json:"complete_state" binding:"required"`
 }
 
 type MissionCreateRequest struct {
-	CompleteState string                 `json:"complete_state"`
-	Targets       []MissionTargetRequest `json:"targets"`
+	CompleteState string                 `json:"complete_state" binding:"required"`
+	Targets       []MissionTargetRequest `json:"targets" binding:"required"`
 }
 
 type MissionSingleCreateResponseDto struct {
@@ -53,14 +53,14 @@ type MissionSingleCreateResponseDto struct {
 }
 
 type AssignCatRequest struct {
-	SpyCatId uuid.UUID `json:"spycat_id"`
+	SpyCatId uuid.UUID `json:"spycat_id" binding:"required"`
 }
 
 type CompletionStateRequest struct {
-	CompleteState models.CompleteState `json:"complete_state"`
+	CompleteState models.CompleteState `json:"complete_state" binding:"required"`
 }
 
 type TargetUpdateRequest struct {
-	Notes         string `json:"notes"`
-	CompleteState string `json:"complete_state"`
+	Notes         string `json:"notes" binding:"omitempty"`
+	CompleteState string `json:"complete_state" binding:"omitempty"`
 }

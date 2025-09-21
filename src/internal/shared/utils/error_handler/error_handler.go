@@ -1,14 +1,24 @@
 package error_handler
 
 import (
-	"fmt"
-
 	"github.com/sirupsen/logrus"
 )
 
-func ErrorHandler(err error, message string) error {
+type CustomError struct {
+	Code    int
+	Message string
+	Err     error
+}
 
-	logrus.WithError(err).Error(message)
-	return fmt.Errorf("%s: %w", message, err)
+func (ce *CustomError) Error() string {
+	return ce.Message
+}
 
+func NewCustomError(code int, newMsg string, newErr error) *CustomError {
+	logrus.WithFields(logrus.Fields{
+		"code":    code,
+		"message": newMsg,
+		"error":   newErr,
+	})
+	return &CustomError{Code: code, Message: newMsg, Err: newErr}
 }

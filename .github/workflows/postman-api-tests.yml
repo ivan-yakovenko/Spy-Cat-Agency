@@ -1,0 +1,35 @@
+name: Automated API tests using Postman CLI
+
+on: push
+
+jobs:
+  automated-api-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+
+      - name: Create Docker network
+        run: docker network create spycats-net || true
+
+      - name: Start Postgres container
+        run: docker-compose -f docker/docker_compose_files/postgres-docker-compose.yml up --build -d
+
+      - name: Start Application and Postman containers
+        run: docker-compose -f docker/docker_compose_files/application-docker-compose.yml -f docker/docker_compose_files/postman-docker-compose.yml up --build -d
+
+      - name: Wait for services
+        run: |
+          echo "Waiting for 20 seconds to let services start..."
+          sleep 20      
+
+      - name: Stop and clean up Docker containers
+        if: always()
+        run: |
+          docker-compose -f docker/docker_compose_files/application-docker-compose.yml -f docker/docker_compose_files/postman-docker-compose.yml down
+          docker-compose -f docker/docker_compose_files/postgres-docker-compose.yml down -v
+          docker network rm spycats-net || true

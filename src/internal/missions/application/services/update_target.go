@@ -5,9 +5,9 @@ import (
 	"Spy-Cat-Agency/src/internal/missions/dtos"
 	"Spy-Cat-Agency/src/internal/missions/mappers"
 	"Spy-Cat-Agency/src/internal/shared/utils/error_handler"
-	models2 "Spy-Cat-Agency/src/internal/spycats/domain/models"
 	"context"
 	"log"
+	"net/http"
 
 	"github.com/go-faster/errors"
 	"github.com/google/uuid"
@@ -21,57 +21,40 @@ func (s *missionServiceImpl) UpdateTarget(ctx context.Context, targetReq dtos.Ta
 	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{})
 
 	if err != nil {
-		return dtos.MissionSingleResponseDto{}, error_handler.ErrorHandler(err, err.Error())
+		return dtos.MissionSingleResponseDto{}, error_handler.NewCustomError(http.StatusInternalServerError, "Error starting transaction to update single target", err)
 	}
 
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil {
-			log.Printf("Error rolling back transaction: %v", err)
+			log.Printf("Error rolling back updating single target transaction: %v", err)
 		}
 	}()
 
 	target, err := s.reader.FindTargetById(ctx, targetId)
 
 	if err != nil {
-		return dtos.MissionSingleResponseDto{}, err
+		return dtos.MissionSingleResponseDto{}, error_handler.NewCustomError(http.StatusInternalServerError, "Error getting single target data from the database", err)
 	}
 
 	if target.CompleteState == models.Completed {
 		targetReq.Notes = ""
-		return dtos.MissionSingleResponseDto{}, ErrorNotesCantBeModified
+		return dtos.MissionSingleResponseDto{}, error_handler.NewCustomError(http.StatusBadRequest, "Notes can not be modified, completion state of the target is already marked 'Completed'", ErrorNotesCantBeModified)
 	}
 
 	updatedTarget := mappers.TargetUpdateWithDto(targetReq, target)
 
 	if _, err := s.updater.UpdateTarget(ctx, tx, updatedTarget); err != nil {
-		return dtos.MissionSingleResponseDto{}, err
-	}
-
-	mission, err := s.reader.FindMissionById(ctx, missionId)
-
-	if err != nil {
-		return dtos.MissionSingleResponseDto{}, err
-	}
-
-	var spyCat *models2.SpyCat
-
-	if mission.SpyCatId != nil {
-		spyCat, err = s.spyCatReader.FindById(ctx, *mission.SpyCatId)
-		if err != nil {
-			return dtos.MissionSingleResponseDto{}, err
-		}
-
-	} else {
-		spyCat = &models2.SpyCat{}
+		return dtos.MissionSingleResponseDto{}, error_handler.NewCustomError(http.StatusInternalServerError, "Error updating single target in database", err)
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return dtos.MissionSingleResponseDto{}, err
+		return dtos.MissionSingleResponseDto{}, error_handler.NewCustomError(http.StatusInternalServerError, "Error commiting transaction to update single target", err)
 	}
 
-	updTargets, err := s.reader.FindMissionTargetsById(ctx, mission.Id)
+	mission, updTargets, spyCat, err := s.reader.FindMissionById(ctx, missionId)
+
 	if err != nil {
-		return dtos.MissionSingleResponseDto{}, err
+		return dtos.MissionSingleResponseDto{}, error_handler.NewCustomError(http.StatusInternalServerError, "Error getting single mission data from the database", err)
 	}
 
 	return mappers.MissionSingleToDto(mission, spyCat, updTargets), nil

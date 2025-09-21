@@ -4,6 +4,7 @@ import (
 	"Spy-Cat-Agency/src/internal/shared/utils/error_handler"
 	"Spy-Cat-Agency/src/internal/spycats/domain/models"
 	"context"
+	"net/http"
 
 	"github.com/go-faster/errors"
 	"github.com/google/uuid"
@@ -26,7 +27,7 @@ func (spr *SpyCatPgxRepository) FindAll(ctx context.Context) ([]models.SpyCat, e
 	rows, err := spr.pool.Query(ctx, query)
 
 	if err != nil {
-		return nil, error_handler.ErrorHandler(err, err.Error())
+		return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error executing spy cats SELECT all query", err)
 	}
 
 	defer rows.Close()
@@ -44,13 +45,13 @@ func (spr *SpyCatPgxRepository) FindAll(ctx context.Context) ([]models.SpyCat, e
 			&spycat.CreatedAt,
 			&spycat.UpdatedAt,
 		); err != nil {
-			return nil, error_handler.ErrorHandler(err, err.Error())
+			return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error scanning spy cats rows from database", err)
 		}
 		spycats = append(spycats, spycat)
 	}
 
 	if rows.Err() != nil {
-		return nil, error_handler.ErrorHandler(err, rows.Err().Error())
+		return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Database error", rows.Err())
 	}
 
 	return spycats, nil
@@ -72,7 +73,10 @@ func (spr *SpyCatPgxRepository) FindById(ctx context.Context, id uuid.UUID) (*mo
 		&spycat.CreatedAt,
 		&spycat.UpdatedAt,
 	); err != nil {
-		return nil, error_handler.ErrorHandler(err, err.Error())
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, error_handler.NewCustomError(http.StatusNotFound, "No such spy cat found in the database", err)
+		}
+		return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error executing spy cat SELECT query", err)
 	}
 
 	return &spycat, nil
@@ -98,7 +102,7 @@ func (spr *SpyCatPgxRepository) Create(ctx context.Context, newSpyCat *models.Sp
 		&newSpyCat.Salary,
 		&newSpyCat.CreatedAt,
 		&newSpyCat.UpdatedAt); err != nil {
-		return nil, error_handler.ErrorHandler(err, err.Error())
+		return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error inserting new spy cat", err)
 	}
 
 	return newSpyCat, nil
@@ -121,9 +125,9 @@ func (spr *SpyCatPgxRepository) Update(ctx context.Context, updatedSpyCat *model
 		&updatedSpyCat.CreatedAt,
 		&updatedSpyCat.UpdatedAt); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, error_handler.ErrorHandler(err, pgx.ErrNoRows.Error())
+			return nil, error_handler.NewCustomError(http.StatusInternalServerError, "No spy cats rows to update from database", pgx.ErrNoRows)
 		}
-		return nil, error_handler.ErrorHandler(err, err.Error())
+		return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error scanning spy cats rows from database", err)
 	}
 
 	return updatedSpyCat, nil
@@ -136,11 +140,11 @@ func (spr *SpyCatPgxRepository) DeleteById(ctx context.Context, id uuid.UUID) er
 	cmdTag, err := spr.pool.Exec(ctx, query, id)
 
 	if err != nil {
-		return error_handler.ErrorHandler(err, err.Error())
+		return error_handler.NewCustomError(http.StatusInternalServerError, "Error executing database spy cat DELETE query", err)
 	}
 
 	if cmdTag.RowsAffected() == 0 {
-		return pgx.ErrNoRows
+		return error_handler.NewCustomError(http.StatusInternalServerError, "No spy cats rows to delete from database", err)
 	}
 
 	return nil
@@ -154,11 +158,11 @@ func (spr *SpyCatPgxRepository) DeleteMany(ctx context.Context, ids []uuid.UUID)
 	cmdTag, err := spr.pool.Exec(ctx, query, ids)
 
 	if err != nil {
-		return error_handler.ErrorHandler(err, err.Error())
+		return error_handler.NewCustomError(http.StatusInternalServerError, "Error executing database spy cats DELETE query", err)
 	}
 
 	if cmdTag.RowsAffected() == 0 {
-		return pgx.ErrNoRows
+		return error_handler.NewCustomError(http.StatusInternalServerError, "No spy cat rows to delete from database", err)
 	}
 
 	return nil

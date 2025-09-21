@@ -14,4 +14,3 @@ COPY ../../migrations ./migrations
 COPY ../../.env.example .
 EXPOSE 8080
 CMD /usr/local/bin/goose -dir ./migrations postgres "$POSTGRES_URL" up && ./spycats-app
-

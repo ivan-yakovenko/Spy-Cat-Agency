@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"Spy-Cat-Agency/src/internal/spycats/application/services"
+	"Spy-Cat-Agency/src/internal/shared/utils/error_handler"
 	"Spy-Cat-Agency/src/internal/spycats/dtos"
 	"net/http"
 
@@ -22,20 +22,16 @@ import (
 // @Router       /spycats [post]
 func (h *SpyCatHandler) CreateSpyCatHandler(c *gin.Context) {
 
-	var spycatReq dtos.SpyCatCreateRequest
-
-	if err := c.ShouldBindJSON(&spycatReq); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid spycat data"})
-		return
-	}
+	spycatReq := c.MustGet("spycatReq").(dtos.SpyCatCreateRequest)
 
 	newSpycat, err := h.Service.CreateSpyCat(c.Request.Context(), spycatReq)
 	if err != nil {
-		if errors.Is(err, services.ErrorInvalidBreed) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		var customErr *error_handler.CustomError
+		if errors.As(err, &customErr) {
+			c.JSON(customErr.Code, gin.H{"error": customErr.Message})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
 

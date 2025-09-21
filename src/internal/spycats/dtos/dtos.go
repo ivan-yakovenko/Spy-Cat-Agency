@@ -24,10 +24,10 @@ type SpyCatAllResponseDto struct {
 }
 
 type SpyCatCreateRequest struct {
-	Name            string  `json:"name"`
-	ExperienceYears int     `json:"experience_years"`
-	Breed           string  `json:"breed"`
-	Salary          float64 `json:"salary"`
+	Name            string  `json:"name" binding:"required"`
+	ExperienceYears int     `json:"experience_years" binding:"required"`
+	Breed           string  `json:"breed" binding:"required"`
+	Salary          float64 `json:"salary" binding:"required"`
 }
 
 type BreedName struct {
@@ -35,9 +35,9 @@ type BreedName struct {
 }
 
 type SalaryRequest struct {
-	Salary float64 `json:"salary"`
+	Salary float64 `json:"salary" binding:"required"`
 }
 
 type DeletedIds struct {
-	Ids []uuid.UUID `json:"ids"`
+	Ids []uuid.UUID `json:"ids" binding:"required"`
 }

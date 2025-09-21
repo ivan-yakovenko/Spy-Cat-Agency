@@ -4,6 +4,7 @@ import (
 	"Spy-Cat-Agency/src/internal/shared/utils/error_handler"
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -22,17 +23,17 @@ func ConnectDb(ctx context.Context) (*pgxpool.Pool, error) {
 	config, err := pgxpool.ParseConfig(dataSourceName)
 
 	if err != nil {
-		return nil, error_handler.ErrorHandler(err, "Error parsing pgx config")
+		return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error parsing pgx config", err)
 	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 
 	if err != nil {
-		return nil, error_handler.ErrorHandler(err, err.Error())
+		return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error creating new pgx pool", err)
 	}
 
 	if err := pool.Ping(ctx); err != nil {
-		return nil, error_handler.ErrorHandler(err, err.Error())
+		return nil, error_handler.NewCustomError(http.StatusInternalServerError, "Error pinging to pgx pool", err)
 	}
 
 	return pool, nil
