@@ -1,12 +1,12 @@
 package handlers
 
 import (
+	"Spy-Cat-Agency/src/internal/shared/utils/error_handler"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-faster/errors"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 )
 
 // DeleteSingleSpyCatHandler godoc
@@ -23,21 +23,15 @@ import (
 // @Router       /spycats/{spycatId} [delete]
 func (h *SpyCatHandler) DeleteSingleSpyCatHandler(c *gin.Context) {
 
-	idStr := c.Param("spycatId")
-
-	id, err := uuid.Parse(idStr)
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid spycat Id"})
-		return
-	}
+	id := c.MustGet("spycatId").(uuid.UUID)
 
 	if err := h.Service.DeleteSingleSpyCat(c.Request.Context(), id); err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Spy cat not found"})
+		var customErr *error_handler.CustomError
+		if errors.As(err, &customErr) {
+			c.JSON(customErr.Code, gin.H{"error": customErr.Message})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
 
